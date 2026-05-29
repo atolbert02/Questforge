@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=DM+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg-deep: #05060e;
+  --bg-card: #0d1117;
+  --bg-hover: #131a26;
+  --border: #1a2535;
+}
+
+body {
+  background: var(--bg-deep);
+  color: #e2e8f0;
+  font-family: 'DM Sans', sans-serif;
+}
