@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { TrackerConfig, TrackerProgress } from "@/lib/types";
 import { saveProgress } from "@/lib/tracker-storage";
 import { evaluateAchievements } from "@/lib/achievements";
@@ -30,6 +30,7 @@ export default function TrackerShell({ config, initialProgress, onNewTracker }: 
   const [progress, setProgress] = useState<TrackerProgress>(initialProgress);
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [toast, setToast] = useState("");
+  const prevUnlockedRef = useRef<Set<string>>(new Set());
 
   const completedSet = new Set(progress.completed);
   const totalXP = config.quests
@@ -38,6 +39,10 @@ export default function TrackerShell({ config, initialProgress, onNewTracker }: 
   const { level, next } = getLevel(totalXP, config.levels);
   const unlockedSet = evaluateAchievements(config.achievements, config.quests, progress);
   const xpPct = next ? Math.round(((totalXP - level.min) / (next.min - level.min)) * 100) : 100;
+
+  useEffect(() => {
+    prevUnlockedRef.current = new Set(unlockedSet);
+  });
 
   function showToast(msg: string) {
     setToast(msg);
@@ -134,7 +139,7 @@ export default function TrackerShell({ config, initialProgress, onNewTracker }: 
         {activeTab === "quests" && <QuestList config={config} completedSet={completedSet} onToggle={toggleQuest} />}
         {activeTab === "skills" && <SkillTree config={config} completedSet={completedSet} />}
         {activeTab === "roadmap" && <Roadmap config={config} completedSet={completedSet} />}
-        {activeTab === "achievements" && <Achievements config={config} completedSet={completedSet} unlockedSet={unlockedSet} />}
+        {activeTab === "achievements" && <Achievements config={config} completedSet={completedSet} unlockedSet={unlockedSet} prevUnlockedSet={prevUnlockedRef.current} />}
       </div>
 
       {/* Toast */}

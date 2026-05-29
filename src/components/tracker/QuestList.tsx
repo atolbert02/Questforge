@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { TrackerConfig } from "@/lib/types";
 
 interface Props {
@@ -13,8 +13,39 @@ const TYPE_COLORS: Record<string, string> = {
   research: "#fbbf24", practice: "#4ade80", document: "#fb7185",
 };
 
+const KEYFRAMES = `
+@keyframes questPop {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(0.95); }
+  65%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+@keyframes checkStamp {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  60%  { transform: scale(1.3) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes xpFloat {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-50px); opacity: 0; }
+}
+`;
+
 export default function QuestList({ config, completedSet, onToggle }: Props) {
   const [phaseFilter, setPhaseFilter] = useState<number | null>(null);
+  const [recentlyCompleted, setRecentlyCompleted] = useState<Set<string>>(new Set());
+  const [floatingXP, setFloatingXP] = useState<Set<string>>(new Set());
+
+  const handleToggle = useCallback((id: string) => {
+    const wasIncomplete = !completedSet.has(id);
+    onToggle(id);
+    if (wasIncomplete) {
+      setRecentlyCompleted((prev) => new Set(Array.from(prev).concat(id)));
+      setFloatingXP((prev) => new Set(Array.from(prev).concat(id)));
+      setTimeout(() => setRecentlyCompleted((prev) => { const n = new Set(prev); n.delete(id); return n; }), 650);
+      setTimeout(() => setFloatingXP((prev) => { const n = new Set(prev); n.delete(id); return n; }), 850);
+    }
+  }, [completedSet, onToggle]);
 
   const phases = config.phases;
   const filtered = phaseFilter !== null
@@ -27,6 +58,7 @@ export default function QuestList({ config, completedSet, onToggle }: Props) {
 
   return (
     <div>
+      <style>{KEYFRAMES}</style>
       {/* Phase filter */}
       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
         <button
@@ -52,20 +84,39 @@ export default function QuestList({ config, completedSet, onToggle }: Props) {
             </div>
             {quests.map((q) => {
               const done = completedSet.has(q.id);
+              const popping = recentlyCompleted.has(q.id);
+              const showXP = floatingXP.has(q.id);
               return (
                 <div
                   key={q.id}
-                  onClick={() => onToggle(q.id)}
+                  onClick={() => handleToggle(q.id)}
                   style={{
+                    position: "relative",
                     background: done ? "#4ade8011" : "#0d1117",
                     border: `1px solid ${q.boss ? config.theme.accent + "66" : done ? "#4ade8033" : "#1a2535"}`,
                     borderRadius: "8px", padding: "14px 16px", marginBottom: "8px",
                     display: "flex", alignItems: "flex-start", gap: "12px",
-                    cursor: "pointer", opacity: done ? 0.65 : 1, transition: "all 0.2s",
+                    cursor: "pointer", opacity: done ? 0.65 : 1, transition: "opacity 0.2s, border-color 0.2s",
                     boxShadow: q.boss && !done ? `0 0 12px ${config.theme.accent}33` : "none",
+                    animation: popping ? "questPop 0.5s cubic-bezier(0.36,0.07,0.19,0.97)" : "none",
                   }}
                 >
-                  <div style={{ width: "20px", height: "20px", borderRadius: "4px", border: `2px solid ${done ? "#4ade80" : "#374151"}`, background: done ? "#4ade80" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: "2px", fontSize: "12px", color: "#05060e" }}>
+                  {showXP && (
+                    <span style={{
+                      position: "absolute", top: "8px", right: "16px",
+                      fontFamily: "Orbitron, sans-serif", fontSize: "0.85rem",
+                      color: "#fbbf24", fontWeight: 700, pointerEvents: "none",
+                      animation: "xpFloat 0.85s ease-out forwards",
+                    }}>+{q.xp} XP</span>
+                  )}
+                  <div style={{
+                    width: "20px", height: "20px", borderRadius: "4px",
+                    border: `2px solid ${done ? "#4ade80" : "#374151"}`,
+                    background: done ? "#4ade80" : "transparent",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0, marginTop: "2px", fontSize: "12px", color: "#05060e",
+                    animation: popping ? "checkStamp 0.4s cubic-bezier(0.175,0.885,0.32,1.275)" : "none",
+                  }}>
                     {done && "✓"}
                   </div>
                   <div style={{ flex: 1 }}>
