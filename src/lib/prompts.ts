@@ -15,13 +15,13 @@ Create a gamified tracker based on this plan. Be creative and thematic — quest
 STRICT RULES:
 - Return ONLY a valid JSON object. No markdown fences, no explanation, no preamble. Just the raw JSON.
 - The characterName should be "${userName}"
-- Create 3–4 phases representing major project stages
-- Each phase should have 4–6 quests
-- Mark 1 quest per phase as boss:true — the major milestone moment
+- Create 4–6 phases representing major project stages
+- Each phase should have 5–8 quests
+- Mark 1–2 quests per phase as boss:true — these are the major milestone moments
 - XP scale: simple task 15–35 XP, medium task 40–90 XP, hard task 100–200 XP, boss battle 150–300 XP, final boss 400–600 XP
-- Create 3–4 skills relevant to the actual disciplines in the project
-- Create 6–8 achievements, using a mix of all condition types
-- Create 6–8 levels with thematic titles (e.g. for a music project: "Listener" → "Session Player" → "Composer" → "Producer" → "Artist")
+- Create 4–6 skills relevant to the actual disciplines in the project
+- Create 8–12 achievements, using a mix of all condition types
+- Create 8–10 levels with thematic titles (e.g. for a music project: "Listener" → "Session Player" → "Composer" → "Producer" → "Artist")
 - Phase colors must be visually distinct hex values — use the theme accent as the Phase 0 color
 - Quest descriptions must be specific and actionable, not generic filler
 - Quest IDs must follow the pattern "p{phaseId}q{index}" e.g. "p0q1", "p0q2", "p1q1"

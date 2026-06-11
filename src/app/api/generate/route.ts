@@ -41,9 +41,9 @@ export async function POST(req: NextRequest) {
 
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    const message = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 3000,
+    const claudeStream = client.messages.stream({
+      model: "claude-sonnet-4-6",
+      max_tokens: 6000,
       messages: [
         {
           role: "user",
@@ -52,36 +52,28 @@ export async function POST(req: NextRequest) {
       ],
     });
 
-    const rawText =
-      message.content[0].type === "text" ? message.content[0].text : "";
+    const encoder = new TextEncoder();
+    const body = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of claudeStream) {
+            if (
+              chunk.type === "content_block_delta" &&
+              chunk.delta.type === "text_delta"
+            ) {
+              controller.enqueue(encoder.encode(chunk.delta.text));
+            }
+          }
+          controller.close();
+        } catch (err) {
+          controller.error(err);
+        }
+      },
+    });
 
-    const jsonStart = rawText.indexOf("{");
-    const jsonEnd = rawText.lastIndexOf("}");
-    const cleaned = jsonStart !== -1 && jsonEnd !== -1
-      ? rawText.slice(jsonStart, jsonEnd + 1)
-      : rawText.replace(/^```json?\s*/i, "").replace(/\s*```$/i, "").trim();
-
-    let config;
-    try {
-      config = JSON.parse(cleaned);
-    } catch {
-      console.error("Failed to parse Claude response:", rawText.slice(0, 500));
-      return NextResponse.json(
-        { error: "Generation failed. Please try again." },
-        { status: 500 }
-      );
-    }
-
-    const validation = validateConfig(config);
-    if (!validation.valid) {
-      console.error("Invalid config:", validation.errors);
-      return NextResponse.json(
-        { error: "Generated tracker was incomplete. Please try again." },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ tracker: config });
+    return new Response(body, {
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
   } catch (err) {
     console.error("Generation error:", err);
     const message = process.env.NODE_ENV === "development"

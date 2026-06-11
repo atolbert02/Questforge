@@ -46,8 +46,25 @@ export default function CreatePage() {
         setState("error");
         return;
       }
-      const data = await res.json();
-      saveTracker(data.tracker as TrackerConfig, emptyProgress());
+
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        accumulated += decoder.decode(value, { stream: true });
+      }
+
+      const jsonStart = accumulated.indexOf("{");
+      const jsonEnd = accumulated.lastIndexOf("}");
+      if (jsonStart === -1 || jsonEnd === -1) {
+        setError("Generation failed. Please try again.");
+        setState("error");
+        return;
+      }
+      const config = JSON.parse(accumulated.slice(jsonStart, jsonEnd + 1));
+      saveTracker(config as TrackerConfig, emptyProgress());
       router.push("/tracker");
     } catch {
       setError("Network error — check your connection and try again.");
