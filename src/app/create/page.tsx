@@ -66,8 +66,9 @@ export default function CreatePage() {
       const config = JSON.parse(accumulated.slice(jsonStart, jsonEnd + 1));
       saveTracker(config as TrackerConfig, emptyProgress());
       router.push("/tracker");
-    } catch {
-      setError("Network error — check your connection and try again.");
+    } catch (err) {
+      const isDev = process.env.NODE_ENV === "development";
+      setError(isDev ? `Error: ${String(err)}` : "Network error — check your connection and try again.");
       setState("error");
     }
   }
