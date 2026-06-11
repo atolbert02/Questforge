@@ -7,6 +7,10 @@ import { validateConfig } from "@/lib/validate-config";
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: "Server misconfiguration: missing API key." }, { status: 500 });
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -76,9 +80,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ tracker: config });
   } catch (err) {
     console.error("Generation error:", err);
-    return NextResponse.json(
-      { error: "Something went wrong. Please try again." },
-      { status: 500 }
-    );
+    const message = process.env.NODE_ENV === "development"
+      ? String(err)
+      : "Something went wrong. Please try again.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

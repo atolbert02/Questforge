@@ -36,16 +36,21 @@ export default function CreatePage() {
 
     try {
       const res = await fetch("/api/generate", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        setError(data.error || "Generation failed. Please try again.");
+      if (!res.ok) {
+        let message = "Generation failed. Please try again.";
+        try {
+          const data = await res.json();
+          if (data.error) message = data.error;
+        } catch {}
+        setError(message);
         setState("error");
         return;
       }
+      const data = await res.json();
       saveTracker(data.tracker as TrackerConfig, emptyProgress());
       router.push("/tracker");
     } catch {
-      setError("Network error. Please try again.");
+      setError("Network error — check your connection and try again.");
       setState("error");
     }
   }
