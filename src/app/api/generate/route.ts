@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 4000,
+      max_tokens: 5500,
       messages: [
         {
           role: "user",
@@ -55,7 +55,11 @@ export async function POST(req: NextRequest) {
     const rawText =
       message.content[0].type === "text" ? message.content[0].text : "";
 
-    const cleaned = rawText.replace(/^```json?\s*/i, "").replace(/\s*```$/i, "").trim();
+    const jsonStart = rawText.indexOf("{");
+    const jsonEnd = rawText.lastIndexOf("}");
+    const cleaned = jsonStart !== -1 && jsonEnd !== -1
+      ? rawText.slice(jsonStart, jsonEnd + 1)
+      : rawText.replace(/^```json?\s*/i, "").replace(/\s*```$/i, "").trim();
 
     let config;
     try {
