@@ -19,6 +19,34 @@ export default function CreatePage() {
   const [text, setText] = useState("");
   const [error, setError] = useState("");
 
+  async function readStream(res: Response): Promise<string> {
+    const reader = res.body!.getReader();
+    const decoder = new TextDecoder();
+    let text = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      text += decoder.decode(value, { stream: true });
+    }
+    return text;
+  }
+
+  function parseJSON(text: string): unknown {
+    const objStart = text.indexOf("{");
+    const objEnd = text.lastIndexOf("}");
+    const arrStart = text.indexOf("[");
+    const arrEnd = text.lastIndexOf("]");
+    try {
+      if (arrStart !== -1 && (objStart === -1 || arrStart < objStart)) {
+        return JSON.parse(text.slice(arrStart, arrEnd + 1));
+      }
+      if (objStart !== -1) {
+        return JSON.parse(text.slice(objStart, objEnd + 1));
+      }
+    } catch {}
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -35,35 +63,62 @@ export default function CreatePage() {
     else fd.append("text", text);
 
     try {
-      const res = await fetch("/api/generate", { method: "POST", body: fd });
-      if (!res.ok) {
-        let message = "Generation failed. Please try again.";
-        try {
-          const data = await res.json();
-          if (data.error) message = data.error;
-        } catch {}
-        setError(message);
+      // ── Step 1: skeleton ──────────────────────────────────────────
+      fd.append("step", "skeleton");
+      const res1 = await fetch("/api/generate", { method: "POST", body: fd });
+      if (!res1.ok) {
+        const data = await res1.json().catch(() => ({}));
+        setError(data.error || "Generation failed. Please try again.");
         setState("error");
         return;
       }
+      const raw1 = await readStream(res1);
 
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let accumulated = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        accumulated += decoder.decode(value, { stream: true });
-      }
+      // Extract projectText sentinel appended by the server
+      const sentinelMatch = raw1.match(/__PROJECT_TEXT__([\s\S]*?)__END__/);
+      const projectText = sentinelMatch ? JSON.parse(sentinelMatch[1]) : "";
+      const skeletonText = raw1.replace(/__PROJECT_TEXT__[\s\S]*?__END__/, "");
+      const skeleton = parseJSON(skeletonText) as { phases: { id: number; label: string; tagline: string }[]; skills: { id: string; label: string }[] } | null;
+      if (!skeleton) { setError("Generation failed at skeleton step. Please try again."); setState("error"); return; }
 
-      const jsonStart = accumulated.indexOf("{");
-      const jsonEnd = accumulated.lastIndexOf("}");
-      if (jsonStart === -1 || jsonEnd === -1) {
-        setError("Generation failed. Please try again.");
+      // ── Step 2: quests ────────────────────────────────────────────
+      const fd2 = new FormData();
+      fd2.append("step", "quests");
+      fd2.append("text", projectText);
+      fd2.append("phases", JSON.stringify(skeleton.phases));
+      fd2.append("skills", JSON.stringify(skeleton.skills));
+      const res2 = await fetch("/api/generate", { method: "POST", body: fd2 });
+      if (!res2.ok) {
+        const data = await res2.json().catch(() => ({}));
+        setError(data.error || "Generation failed at quests step. Please try again.");
         setState("error");
         return;
       }
-      const config = JSON.parse(accumulated.slice(jsonStart, jsonEnd + 1));
+      const raw2 = await readStream(res2);
+      const quests = parseJSON(raw2);
+      if (!Array.isArray(quests)) { setError("Generation failed at quests step. Please try again."); setState("error"); return; }
+
+      // ── Step 3: achievements ──────────────────────────────────────
+      const questIds = quests.map((q: { id: string }) => q.id);
+      const bossQuestIds = quests.filter((q: { boss: boolean }) => q.boss).map((q: { id: string }) => q.id);
+      const fd3 = new FormData();
+      fd3.append("step", "achievements");
+      fd3.append("questIds", JSON.stringify(questIds));
+      fd3.append("bossQuestIds", JSON.stringify(bossQuestIds));
+      fd3.append("phaseCount", String(skeleton.phases.length));
+      const res3 = await fetch("/api/generate", { method: "POST", body: fd3 });
+      if (!res3.ok) {
+        const data = await res3.json().catch(() => ({}));
+        setError(data.error || "Generation failed at achievements step. Please try again.");
+        setState("error");
+        return;
+      }
+      const raw3 = await readStream(res3);
+      const achievements = parseJSON(raw3);
+      if (!Array.isArray(achievements)) { setError("Generation failed at achievements step. Please try again."); setState("error"); return; }
+
+      // ── Assemble & save ───────────────────────────────────────────
+      const config = { ...skeleton, quests, achievements };
       saveTracker(config as TrackerConfig, emptyProgress());
       router.push("/tracker");
     } catch (err) {
