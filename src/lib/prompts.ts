@@ -1,7 +1,7 @@
 export function buildGenerationPrompt(projectText: string, userName: string): string {
   const truncated =
-    projectText.length > 80000
-      ? projectText.slice(0, 80000) + "\n\n[Document truncated for processing]"
+    projectText.length > 15000
+      ? projectText.slice(0, 15000) + "\n\n[Document truncated for processing]"
       : projectText;
 
   return `You are an expert project analyst and gamification designer. A user named "${userName}" has uploaded their long-term project plan. Analyze it and transform it into a complete, personalized gamified task tracker.
