@@ -130,7 +130,7 @@ export default function CreatePage() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Alexandra"
+              placeholder="Type Your Name Here"
               maxLength={50}
               style={{ width: "100%", background: "#0d1117", border: "1px solid #1a2535", borderRadius: "8px", color: "#e2e8f0", padding: "10px 14px", fontSize: "0.95rem", outline: "none" }}
               onFocus={(e) => (e.target.style.borderColor = "#f97316")}
