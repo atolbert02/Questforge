@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { TrackerConfig } from "@/lib/types";
+import { getTheme } from "@/lib/themes";
+import { playThemeSound } from "@/lib/use-theme-sound";
 
 interface Props {
   config: TrackerConfig;
@@ -9,7 +11,7 @@ interface Props {
   prevUnlockedSet: Set<string>;
 }
 
-const KEYFRAMES = `
+const keyframes = (glow: string) => `
 @keyframes flipReveal {
   from { transform: rotateY(0deg); }
   to   { transform: rotateY(180deg); }
@@ -19,12 +21,12 @@ const KEYFRAMES = `
   100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
 }
 @keyframes achGlow {
-  0%, 100% { box-shadow: 0 0 8px #fbbf2466; }
-  50%       { box-shadow: 0 0 24px #fbbf24aa, 0 0 48px #fbbf2433; }
+  0%, 100% { box-shadow: 0 0 8px ${glow}66; }
+  50%       { box-shadow: 0 0 24px ${glow}aa, 0 0 48px ${glow}33; }
 }
 `;
 
-function Particles() {
+function Particles({ colors }: { colors: string[] }) {
   const particles = Array.from({ length: 10 }, (_, i) => {
     const angle = (i / 10) * 360 + Math.random() * 36;
     const dist = 40 + Math.random() * 40;
@@ -43,7 +45,7 @@ function Particles() {
             top: "50%", left: "50%",
             width: `${p.size}px`, height: `${p.size}px`,
             borderRadius: "50%",
-            background: i % 2 === 0 ? "#fbbf24" : "#f97316",
+            background: colors[i % colors.length],
             pointerEvents: "none",
             // @ts-expect-error CSS custom properties
             "--tx": `${p.tx}px`,
@@ -60,6 +62,11 @@ export default function Achievements({ config, unlockedSet, prevUnlockedSet }: P
   const [flipping, setFlipping] = useState<Set<string>>(new Set());
   const [showParticles, setShowParticles] = useState<Set<string>>(new Set());
 
+  const theme = getTheme(config.themeId);
+  const t = theme.tokens;
+  const f = theme.fonts;
+  const particleColors = theme.effect.particleColors;
+
   useEffect(() => {
     const newlyUnlocked = config.achievements
       .filter((a) => unlockedSet.has(a.id) && !prevUnlockedSet.has(a.id))
@@ -67,6 +74,7 @@ export default function Achievements({ config, unlockedSet, prevUnlockedSet }: P
 
     if (newlyUnlocked.length === 0) return;
 
+    playThemeSound(theme, "achievement");
     setFlipping((prev) => new Set(Array.from(prev).concat(newlyUnlocked)));
     setTimeout(() => {
       setShowParticles((prev) => new Set(Array.from(prev).concat(newlyUnlocked)));
@@ -79,7 +87,7 @@ export default function Achievements({ config, unlockedSet, prevUnlockedSet }: P
 
   return (
     <div>
-      <style>{KEYFRAMES}</style>
+      <style>{keyframes(t.gold)}</style>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "12px" }}>
         {config.achievements.map((a) => {
           const unlocked = unlockedSet.has(a.id);
@@ -93,8 +101,8 @@ export default function Achievements({ config, unlockedSet, prevUnlockedSet }: P
             >
               <div
                 style={{
-                  background: "#0d1117",
-                  border: `1px solid ${unlocked ? "#fbbf2466" : "#1a2535"}`,
+                  background: t.bgCard,
+                  border: `1px solid ${unlocked ? `${t.gold}66` : t.border}`,
                   borderRadius: "10px", padding: "20px 16px", textAlign: "center",
                   opacity: unlocked ? 1 : 0.4,
                   filter: unlocked ? "none" : "grayscale(1)",
@@ -107,14 +115,14 @@ export default function Achievements({ config, unlockedSet, prevUnlockedSet }: P
               >
                 <div style={{ fontSize: "2rem", marginBottom: "10px" }}>{a.icon}</div>
                 <div style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: "6px" }}>{a.name}</div>
-                <div style={{ color: "#64748b", fontSize: "0.8rem", lineHeight: 1.4 }}>{a.desc}</div>
+                <div style={{ color: t.textMuted, fontSize: "0.8rem", lineHeight: 1.4 }}>{a.desc}</div>
                 {unlocked && (
-                  <div style={{ marginTop: "10px", fontFamily: "IBM Plex Mono, monospace", fontSize: "0.68rem", color: "#fbbf24" }}>
+                  <div style={{ marginTop: "10px", fontFamily: f.mono, fontSize: "0.68rem", color: t.gold }}>
                     ✦ UNLOCKED
                   </div>
                 )}
               </div>
-              {hasParticles && <Particles />}
+              {hasParticles && <Particles colors={particleColors} />}
             </div>
           );
         })}

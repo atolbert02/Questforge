@@ -1,4 +1,5 @@
 import { TrackerConfig, Quest } from "./types";
+import { getTheme, themePhaseColors, ThemeId } from "./themes";
 
 /**
  * Orchestrates phased tracker generation entirely from the client:
@@ -15,6 +16,8 @@ export interface GenerateInput {
   name: string;
   file?: File | null;
   text?: string;
+  /** User-picked game theme; drives the tracker's palette + phase colors. */
+  themeId?: ThemeId;
 }
 
 type Progress = (fraction: number, label: string) => void;
@@ -77,6 +80,15 @@ export async function generateTracker(
   const skeleton: Skeleton = skelData.skeleton;
   const projectText: string = skelData.projectText;
 
+  /* Apply the user-picked theme: override palette + recolor phases/skills so
+     everything matches the chosen skin instead of the model's random hex. */
+  const theme = getTheme(input.themeId);
+  skeleton.theme = { accent: theme.tokens.accent, secondary: theme.tokens.secondary };
+  const phaseColors = themePhaseColors(theme, skeleton.phases.length);
+  skeleton.phases = skeleton.phases.map((p, i) => ({ ...p, color: phaseColors[i] }));
+  const skillColors = themePhaseColors(theme, skeleton.skills.length);
+  skeleton.skills = skeleton.skills.map((s, i) => ({ ...s, color: skillColors[i] }));
+
   onProgress(0.25, "Mapping out your phases...");
 
   // Base config the UI can render immediately (phases + skills, no quests yet).
@@ -85,6 +97,7 @@ export async function generateTracker(
     tagline: skeleton.tagline,
     characterName: skeleton.characterName,
     duration: skeleton.duration,
+    themeId: input.themeId,
     theme: skeleton.theme,
     levels: skeleton.levels,
     phases: skeleton.phases,
@@ -157,6 +170,7 @@ export async function generateTracker(
     tagline: skeleton.tagline,
     characterName: skeleton.characterName,
     duration: skeleton.duration,
+    themeId: input.themeId,
     theme: skeleton.theme,
     levels: skeleton.levels,
     phases: skeleton.phases,

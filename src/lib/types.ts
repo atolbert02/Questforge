@@ -1,8 +1,12 @@
+import type { ThemeId } from "./themes";
+
 export interface TrackerConfig {
   projectTitle: string;
   tagline: string;
   characterName: string;
   duration: string;
+  /** Game-inspired skin id (see src/lib/themes.ts). Optional for back-compat. */
+  themeId?: ThemeId;
   theme: {
     accent: string;
     secondary: string;

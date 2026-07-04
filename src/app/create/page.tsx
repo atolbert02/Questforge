@@ -3,11 +3,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import FileDropzone from "@/components/create/FileDropzone";
 import TextPaste from "@/components/create/TextPaste";
+import ThemePicker from "@/components/create/ThemePicker";
 import TrackerShell from "@/components/tracker/TrackerShell";
 import { saveTracker, emptyProgress } from "@/lib/tracker-storage";
 import { validateConfig } from "@/lib/validate-config";
 import { generateTracker } from "@/lib/generate-client";
 import { TrackerConfig } from "@/lib/types";
+import { ThemeId, DEFAULT_THEME_ID } from "@/lib/themes";
 
 type State = "idle" | "generating" | "error";
 type InputTab = "upload" | "paste";
@@ -19,6 +21,7 @@ export default function CreatePage() {
   const [name, setName] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [text, setText] = useState("");
+  const [themeId, setThemeId] = useState<ThemeId>(DEFAULT_THEME_ID);
   const [error, setError] = useState("");
 
   // Real progress (0..1) + label, driven by the orchestrator.
@@ -42,7 +45,7 @@ export default function CreatePage() {
 
     try {
       const config = await generateTracker(
-        { name: name.trim(), file: tab === "upload" ? file : null, text },
+        { name: name.trim(), file: tab === "upload" ? file : null, text, themeId },
         (fraction, label) => { setProgress(fraction); setProgressLabel(label); },
         (snapshot) => setPartial(snapshot)
       );
@@ -115,7 +118,7 @@ export default function CreatePage() {
 
   return (
     <main style={{ background: "#05060e", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 16px" }}>
-      <div style={{ width: "100%", maxWidth: "560px" }}>
+      <div style={{ width: "100%", maxWidth: "720px" }}>
         <a href="/" style={{ color: "#64748b", fontSize: "0.85rem", textDecoration: "none", display: "block", marginBottom: "32px" }}>← Back</a>
         <h1 style={{ fontFamily: "Orbitron, sans-serif", color: "#f97316", fontSize: "1.5rem", marginBottom: "8px" }}>
           Generate Your Tracker
@@ -145,6 +148,8 @@ export default function CreatePage() {
             </div>
             {tab === "upload" ? <FileDropzone onFile={setFile} /> : <TextPaste value={text} onChange={setText} />}
           </div>
+
+          <ThemePicker value={themeId} onChange={setThemeId} />
 
           {(error || state === "error") && (
             <div style={{ color: "#fb7185", background: "#fb718511", border: "1px solid #fb718533", borderRadius: "8px", padding: "12px 16px", fontSize: "0.9rem" }}>

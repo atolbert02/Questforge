@@ -16,16 +16,18 @@
 
 ---
 
-## Current State (as of 2026-05-29)
+## Current State (as of 2026-07-04)
 
 | Area | Status |
 |---|---|
 | Landing page | ✅ Live (Hero + How It Works) |
 | Create page (upload / paste) | ✅ Live with progressive live render |
+| Theme picker (13 game-inspired skins, picked at creation) | ✅ Live |
 | Tracker UI (Dashboard, Quests, Skills, Roadmap, Achievements) | ✅ Live |
 | Generation pipeline (fan-out, <60s) | ✅ Live — skeleton → parallel phases → achievements |
 | Animations (quest pop, achievement flip) | ✅ Live |
-| HTML export (standalone tracker) | ✅ Built |
+| Themed effects + synth sound + mute | ✅ Live — per-theme particle burst/banner + Web Audio cues |
+| HTML export (standalone tracker) | ✅ Built — now fully theme-aware (tokens, fonts, FX) |
 | Deployment | ✅ Production on Vercel, auto-deploys on push |
 | Auth / payments / DB | ⬜ Not started (MVP is localStorage-only) |
 
@@ -62,6 +64,17 @@
 
 ### 2026-05-29 — Production deployment
 - Synced current API key to Vercel, deployed to production, smoke-tested landing + live generation (both pass).
+
+### 2026-07-04 — Game-inspired theme system (13 themes)
+- Added `src/lib/themes.ts`: a central registry of 13 themes (Space Station, Kart Racer, Puffball Quest, Block Miner, Wizard School, Super Hero, Nightmare Maze, Zombie Survival, Adventure Quest, Cozy Farm, Monster Tamer, Drop Squad, Beat Drop). Each theme = full token palette + fonts (Google Fonts URL) + effect kind + icon set + optional background. Original art/names (descriptive, non-trademarked).
+- **Token refactor:** replaced hard-coded hex/fonts across all 6 tracker components with theme tokens via `getTheme(config.themeId)`. Default resolves to **Space Station** so pre-existing localStorage trackers render exactly as before. Added `themeId?: ThemeId` to `TrackerConfig`.
+- **Selection at creation:** new `ThemePicker` on the Create page (previews each theme in its own palette + display font). `themeId` threads through `generate-client.ts`; phase/skill colors are now **derived from the theme** (`themePhaseColors`) instead of the model's random hex.
+- **Interactive effects + sound:** `effects/theme-effect.ts` fires a per-theme particle burst (+ banner for pow/victory/combo/etc.) at the click point on quest complete / level up / achievement unlock. `use-theme-sound.ts` synthesizes short cues with the **Web Audio API** (no audio files → original, instant, zero licensing). Mute toggle (🔊/🔇) in the header, persisted to `localStorage.qf_muted`.
+- **Themed export:** `export-html.ts` now emits the full token set + theme fonts + an inline self-contained particle burst, so downloaded trackers stay on-theme.
+- **Verified:** `tsc --noEmit` + `next build` clean (9/9 pages). Smoke-tested Space Station (unchanged), Wizard School (dark serif), Cozy Farm (light), Block Miner (pixel font) end-to-end incl. picker previews, quest-complete burst, and themed HTML export.
+- **Lesson:** with heavy inline-hex styling + pervasive `${accent}44` alpha concatenation, a JS **token object** (`getTheme().tokens`) beats CSS variables — hex+alpha strings just work, and each component already receives `config`. Synthesizing SFX via Web Audio sidestepped the whole audio-asset sourcing/licensing problem.
+
+**Follow-ups (not yet done):** source/author distinct sound recipes per theme if richer audio is wanted; consider theming the quest-type badge palette further; the pixel-font (Press Start 2P) tab row scrolls horizontally on narrow screens (acceptable, by design).
 
 ---
 

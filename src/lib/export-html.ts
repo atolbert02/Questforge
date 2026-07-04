@@ -1,4 +1,5 @@
 import { TrackerConfig, TrackerProgress } from "./types";
+import { getTheme } from "./themes";
 
 export function exportTrackerHTML(config: TrackerConfig, progress: TrackerProgress): void {
   const html = buildHTML(config, progress);
@@ -15,8 +16,20 @@ export function exportTrackerHTML(config: TrackerConfig, progress: TrackerProgre
 
 function buildHTML(config: TrackerConfig, progress: TrackerProgress): string {
   const savedKey = `qf_export_${config.projectTitle.replace(/\s/g, "_")}`;
-  const accent = config.theme.accent;
-  const secondary = config.theme.secondary;
+  const theme = getTheme(config.themeId);
+  const t = theme.tokens;
+  const f = theme.fonts;
+  const accent = config.theme?.accent ?? t.accent;
+  const bodyBg = theme.background ?? t.bgDeep;
+
+  // Data the inline particle-burst reads. Kept tiny + self-contained.
+  const FX = JSON.stringify({
+    kind: theme.effect.kind,
+    colors: theme.effect.particleColors,
+    display: f.display,
+    accent: t.accent,
+    onAccent: t.onAccent,
+  });
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -24,67 +37,68 @@ function buildHTML(config: TrackerConfig, progress: TrackerProgress): string {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${config.projectTitle} — Quest Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=DM+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="${f.googleFontsUrl}" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #05060e; color: #e2e8f0; font-family: 'DM Sans', sans-serif; min-height: 100vh; }
-  h1, h2, h3, .display { font-family: 'Orbitron', sans-serif; }
-  .mono { font-family: 'IBM Plex Mono', monospace; }
+  body { background: ${bodyBg}; color: ${t.text}; font-family: ${f.body}; min-height: 100vh; }
+  h1, h2, h3, .display { font-family: ${f.display}; }
+  .mono { font-family: ${f.mono}; }
   .app { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
-  .header { border-bottom: 1px solid #1a2535; padding-bottom: 20px; margin-bottom: 24px; }
+  .header { border-bottom: 1px solid ${t.border}; padding-bottom: 20px; margin-bottom: 24px; }
   .header h1 { font-size: 1.5rem; color: ${accent}; }
-  .header .tagline { color: #64748b; margin-top: 4px; font-size: 0.9rem; }
+  .header .tagline { color: ${t.textMuted}; margin-top: 4px; font-size: 0.9rem; }
   .xp-bar-wrap { margin-top: 12px; }
-  .xp-bar-bg { background: #1a2535; border-radius: 4px; height: 8px; }
+  .xp-bar-bg { background: ${t.border}; border-radius: 4px; height: 8px; }
   .xp-bar-fill { background: ${accent}; height: 8px; border-radius: 4px; transition: width 0.4s; }
-  .xp-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: #64748b; margin-top: 4px; display: flex; justify-content: space-between; }
+  .xp-label { font-family: ${f.mono}; font-size: 0.75rem; color: ${t.textMuted}; margin-top: 4px; display: flex; justify-content: space-between; }
   .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
-  .tab { background: #0d1117; border: 1px solid #1a2535; color: #64748b; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+  .tab { background: ${t.bgCard}; border: 1px solid ${t.border}; color: ${t.textMuted}; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
   .tab.active { background: ${accent}22; border-color: ${accent}; color: ${accent}; }
-  .tab:hover:not(.active) { border-color: #374151; color: #e2e8f0; }
+  .tab:hover:not(.active) { border-color: ${t.borderStrong}; color: ${t.text}; }
   .panel { display: none; }
   .panel.active { display: block; }
-  .quest-card { background: #0d1117; border: 1px solid #1a2535; border-radius: 8px; padding: 16px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: border-color 0.2s; }
-  .quest-card:hover { border-color: #374151; }
+  .quest-card { background: ${t.bgCard}; border: 1px solid ${t.border}; border-radius: 8px; padding: 16px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: border-color 0.2s; }
+  .quest-card:hover { border-color: ${t.borderStrong}; }
   .quest-card.boss { border-color: ${accent}66; animation: bossGlow 2s ease-in-out infinite; }
-  .quest-card.done { opacity: 0.5; background: #4ade8011; border-color: #4ade8033; }
-  .quest-check { width: 20px; height: 20px; border: 2px solid #374151; border-radius: 4px; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-  .quest-check.checked { background: #4ade80; border-color: #4ade80; }
+  .quest-card.done { opacity: 0.5; background: ${t.success}11; border-color: ${t.success}33; }
+  .quest-check { width: 20px; height: 20px; border: 2px solid ${t.borderStrong}; border-radius: 4px; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; color: ${t.onAccent}; }
+  .quest-check.checked { background: ${t.success}; border-color: ${t.success}; }
   .quest-name { font-weight: 600; font-size: 0.95rem; }
-  .quest-desc { color: #64748b; font-size: 0.85rem; margin-top: 4px; }
+  .quest-desc { color: ${t.textMuted}; font-size: 0.85rem; margin-top: 4px; }
   .quest-meta { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-  .badge { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; background: #1a2535; color: #64748b; }
-  .badge.xp { color: #fbbf24; border: 1px solid #fbbf2433; background: #fbbf2411; }
+  .badge { font-family: ${f.mono}; font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; background: ${t.border}; color: ${t.textMuted}; }
+  .badge.xp { color: ${t.gold}; border: 1px solid ${t.gold}33; background: ${t.gold}11; }
   .badge.boss-badge { color: ${accent}; border: 1px solid ${accent}44; background: ${accent}11; }
-  .phase-header { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; letter-spacing: 2px; padding: 8px 0; margin: 20px 0 10px; color: #64748b; border-bottom: 1px solid #1a2535; }
-  .skill-card { background: #0d1117; border: 1px solid #1a2535; border-radius: 8px; padding: 16px; margin-bottom: 10px; }
+  .phase-header { font-family: ${f.display}; font-size: 0.75rem; letter-spacing: 2px; padding: 8px 0; margin: 20px 0 10px; color: ${t.textMuted}; border-bottom: 1px solid ${t.border}; }
+  .skill-card { background: ${t.bgCard}; border: 1px solid ${t.border}; border-radius: 8px; padding: 16px; margin-bottom: 10px; }
   .skill-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   .skill-icon { font-size: 1.5rem; }
   .skill-label { font-weight: 600; }
-  .skill-xp { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: #64748b; margin-left: auto; }
-  .skill-bar-bg { background: #1a2535; border-radius: 4px; height: 6px; }
+  .skill-xp { font-family: ${f.mono}; font-size: 0.8rem; color: ${t.textMuted}; margin-left: auto; }
+  .skill-bar-bg { background: ${t.border}; border-radius: 4px; height: 6px; }
   .skill-bar-fill { height: 6px; border-radius: 4px; transition: width 0.4s; }
   .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-  .ach-card { background: #0d1117; border: 1px solid #1a2535; border-radius: 8px; padding: 16px; text-align: center; transition: border-color 0.2s; }
-  .ach-card.unlocked { border-color: #fbbf2466; background: #fbbf2411; }
+  .ach-card { background: ${t.bgCard}; border: 1px solid ${t.border}; border-radius: 8px; padding: 16px; text-align: center; transition: border-color 0.2s; }
+  .ach-card.unlocked { border-color: ${t.gold}66; background: ${t.gold}11; }
   .ach-card.locked { opacity: 0.4; filter: grayscale(1); }
   .ach-icon { font-size: 2rem; margin-bottom: 8px; }
   .ach-name { font-weight: 600; font-size: 0.9rem; }
-  .ach-desc { color: #64748b; font-size: 0.8rem; margin-top: 4px; }
+  .ach-desc { color: ${t.textMuted}; font-size: 0.8rem; margin-top: 4px; }
   .roadmap { position: relative; padding-left: 24px; }
-  .roadmap::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: #1a2535; }
+  .roadmap::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: ${t.border}; }
   .phase-milestone { position: relative; margin-bottom: 32px; }
-  .phase-dot { position: absolute; left: -20px; width: 16px; height: 16px; border-radius: 50%; border: 2px solid; background: #05060e; }
-  .phase-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 4px; }
-  .phase-dates { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: #64748b; margin-bottom: 8px; }
-  .phase-tagline { color: #94a3b8; font-size: 0.85rem; }
-  .phase-progress { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: #64748b; margin-top: 6px; }
+  .phase-dot { position: absolute; left: -20px; width: 16px; height: 16px; border-radius: 50%; border: 2px solid; background: ${t.bgDeep}; }
+  .phase-title { font-family: ${f.display}; font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 4px; }
+  .phase-dates { font-family: ${f.mono}; font-size: 0.75rem; color: ${t.textMuted}; margin-bottom: 8px; }
+  .phase-tagline { color: ${t.textDim}; font-size: 0.85rem; }
+  .phase-progress { font-family: ${f.mono}; font-size: 0.75rem; color: ${t.textMuted}; margin-top: 6px; }
   .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
-  .stat-card { background: #0d1117; border: 1px solid #1a2535; border-radius: 8px; padding: 16px; text-align: center; }
-  .stat-value { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: ${accent}; }
-  .stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: #64748b; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
-  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #4ade80; color: #05060e; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .stat-card { background: ${t.bgCard}; border: 1px solid ${t.border}; border-radius: 8px; padding: 16px; text-align: center; }
+  .stat-value { font-family: ${f.display}; font-size: 1.5rem; color: ${accent}; }
+  .stat-label { font-family: ${f.mono}; font-size: 0.7rem; color: ${t.textMuted}; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: ${t.success}; color: ${t.onAccent}; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
   .toast.show { opacity: 1; }
+  #qf-fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 1000; overflow: hidden; }
   @keyframes bossGlow {
     0%, 100% { box-shadow: 0 0 8px ${accent}; }
     50% { box-shadow: 0 0 24px ${accent}, 0 0 48px ${accent}44; }
@@ -103,11 +117,11 @@ function buildHTML(config: TrackerConfig, progress: TrackerProgress): string {
     </div>
   </div>
   <div class="tabs">
-    <button class="tab active" onclick="showTab('dashboard')">Dashboard</button>
-    <button class="tab" onclick="showTab('quests')">Quests</button>
-    <button class="tab" onclick="showTab('skills')">Skills</button>
-    <button class="tab" onclick="showTab('roadmap')">Roadmap</button>
-    <button class="tab" onclick="showTab('achievements')">Achievements</button>
+    <button class="tab active" onclick="showTab(event,'dashboard')">Dashboard</button>
+    <button class="tab" onclick="showTab(event,'quests')">Quests</button>
+    <button class="tab" onclick="showTab(event,'skills')">Skills</button>
+    <button class="tab" onclick="showTab(event,'roadmap')">Roadmap</button>
+    <button class="tab" onclick="showTab(event,'achievements')">Achievements</button>
   </div>
   <div id="dashboard" class="panel active"></div>
   <div id="quests" class="panel"></div>
@@ -116,9 +130,11 @@ function buildHTML(config: TrackerConfig, progress: TrackerProgress): string {
   <div id="achievements" class="panel"></div>
 </div>
 <div class="toast" id="toast"></div>
+<div id="qf-fx-layer"></div>
 <script>
 const CONFIG = ${JSON.stringify(config)};
 const SAVED_KEY = "${savedKey}";
+const FX = ${FX};
 
 let progress = (() => {
   try {
@@ -129,6 +145,46 @@ let progress = (() => {
 
 function saveProgress() {
   try { localStorage.setItem(SAVED_KEY, JSON.stringify(progress)); } catch {}
+}
+
+/* ---- themed particle burst (self-contained) ---- */
+const FX_CFG = {
+  confetti:{count:26,shape:'square',gravity:260,velocity:260,size:[6,11]},
+  coin:{count:18,shape:'emoji',emojis:['🪙','⭐'],gravity:300,velocity:240,size:[16,22]},
+  star:{count:20,shape:'emoji',emojis:['⭐','✨','💫'],gravity:120,velocity:220,size:[14,22]},
+  block:{count:16,shape:'square',gravity:340,velocity:200,size:[9,14]},
+  spell:{count:22,shape:'emoji',emojis:['✨','🔮','✦'],gravity:40,velocity:200,size:[12,20],banner:'✦ Spell cast! ✦'},
+  pow:{count:22,shape:'square',gravity:200,velocity:300,size:[7,13],banner:'POW!'},
+  ember:{count:20,shape:'dot',gravity:-140,velocity:150,size:[4,8]},
+  glitch:{count:24,shape:'square',gravity:60,velocity:320,size:[5,16],banner:'⚠ CLEARED'},
+  rune:{count:18,shape:'emoji',emojis:['✦','❖','⟡'],gravity:60,velocity:200,size:[14,20]},
+  leaf:{count:18,shape:'emoji',emojis:['🍃','🌿','🍂'],gravity:-60,velocity:150,size:[14,20]},
+  capture:{count:20,shape:'emoji',emojis:['⚡','✨'],gravity:160,velocity:250,size:[14,22],banner:'Gotcha!'},
+  victory:{count:30,shape:'square',gravity:240,velocity:300,size:[7,12],banner:'VICTORY!'},
+  combo:{count:22,shape:'dot',gravity:120,velocity:280,size:[6,12],banner:'COMBO!'}
+};
+const rnd = (a,b) => a + Math.random()*(b-a);
+function playFX(x,y){
+  const cfg = FX_CFG[FX.kind] || FX_CFG.confetti;
+  const layer = document.getElementById('qf-fx-layer');
+  for (let i=0;i<cfg.count;i++){
+    const p = document.createElement('span');
+    const size = rnd(cfg.size[0],cfg.size[1]);
+    p.style.cssText = 'position:absolute;left:'+x+'px;top:'+y+'px;pointer-events:none;';
+    if (cfg.shape==='emoji' && cfg.emojis){ p.textContent = cfg.emojis[i%cfg.emojis.length]; p.style.fontSize=size+'px'; p.style.lineHeight='1'; }
+    else { p.style.width=size+'px'; p.style.height=size+'px'; p.style.background=FX.colors[i%FX.colors.length]; p.style.borderRadius = cfg.shape==='dot'?'50%':'2px'; }
+    const ang = rnd(0,Math.PI*2), sp = rnd(cfg.velocity*0.35,cfg.velocity);
+    const dx = Math.cos(ang)*sp, dy = Math.sin(ang)*sp - cfg.velocity*0.4;
+    layer.appendChild(p);
+    p.animate([{transform:'translate(0,0) rotate(0deg)',opacity:1},{transform:'translate('+dx+'px,'+(dy+cfg.gravity)+'px) rotate('+rnd(-360,360)+'deg)',opacity:0}],{duration:rnd(650,1050),easing:'cubic-bezier(0.25,0.6,0.4,1)',fill:'forwards'}).finished.then(()=>p.remove()).catch(()=>p.remove());
+  }
+  if (cfg.banner){
+    const b = document.createElement('div');
+    b.textContent = cfg.banner;
+    b.style.cssText = 'position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-family:'+FX.display+';color:'+FX.accent+';font-size:clamp(2.2rem,9vw,4.5rem);font-weight:900;letter-spacing:1px;text-shadow:0 2px 0 '+FX.onAccent+',0 0 24px '+FX.accent+'88;pointer-events:none;white-space:nowrap;';
+    layer.appendChild(b);
+    b.animate([{transform:'translate(-50%,-50%) scale(0.4) rotate(-6deg)',opacity:0},{transform:'translate(-50%,-50%) scale(1.15) rotate(-3deg)',opacity:1,offset:0.35},{transform:'translate(-50%,-50%) scale(1) rotate(0deg)',opacity:1,offset:0.7},{transform:'translate(-50%,-60%) scale(1) rotate(0deg)',opacity:0}],{duration:1100,easing:'cubic-bezier(0.2,0.8,0.3,1)',fill:'forwards'}).finished.then(()=>b.remove()).catch(()=>b.remove());
+  }
 }
 
 function getTotalXP() {
@@ -184,18 +240,22 @@ function updateHeader() {
   document.getElementById('xp-display').textContent = next ? xp + ' / ' + next.min + ' XP' : xp + ' XP (MAX)';
 }
 
-function showTab(name) {
+function showTab(evt, name) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById(name).classList.add('active');
-  event.target.classList.add('active');
+  evt.target.classList.add('active');
   render(name);
 }
 
-function toggleQuest(id) {
+function toggleQuest(evt, id) {
   const idx = progress.completed.indexOf(id);
   if (idx >= 0) progress.completed.splice(idx, 1);
-  else { progress.completed.push(id); showToast('Quest complete! +XP'); }
+  else {
+    progress.completed.push(id);
+    showToast('Quest complete! +XP');
+    playFX(evt ? evt.clientX : innerWidth/2, evt ? evt.clientY : innerHeight/3);
+  }
   saveProgress();
   updateHeader();
   renderQuests();
@@ -244,7 +304,7 @@ function renderQuests() {
     html += \`<div class="phase-header" style="color:\${phase.color}">\${phase.label} (\${pDone}/\${quests.length})</div>\`;
     quests.forEach(q => {
       const isDone = done.has(q.id);
-      html += \`<div class="quest-card \${q.boss ? 'boss' : ''} \${isDone ? 'done' : ''}" onclick="toggleQuest('\${q.id}')">
+      html += \`<div class="quest-card \${q.boss ? 'boss' : ''} \${isDone ? 'done' : ''}" onclick="toggleQuest(event,'\${q.id}')">
         <div class="quest-check \${isDone ? 'checked' : ''}">\${isDone ? '✓' : ''}</div>
         <div style="flex:1">
           <div class="quest-name">\${q.name}</div>
@@ -285,7 +345,7 @@ function renderRoadmap() {
     const pDone = quests.filter(q => done.has(q.id)).length;
     const pct = quests.length ? Math.round((pDone / quests.length) * 100) : 0;
     return \`<div class="phase-milestone">
-      <div class="phase-dot" style="border-color:\${phase.color};background:\${pDone===quests.length ? phase.color : '#05060e'}"></div>
+      <div class="phase-dot" style="border-color:\${phase.color};background:\${pDone===quests.length ? phase.color : '${t.bgDeep}'}"></div>
       <div class="phase-title" style="color:\${phase.color}">\${phase.label}</div>
       <div class="phase-dates mono">\${phase.dates}</div>
       <div class="phase-tagline">\${phase.tagline}</div>
