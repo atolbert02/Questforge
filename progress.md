@@ -3,8 +3,8 @@
 > A living record of everything built, every issue hit, and how it was resolved.
 > **Update this file after each feature, addition, or resolved issue** so we learn from past mistakes.
 
-**Live URL:** https://questforge-sigma.vercel.app
-**Repo:** https://github.com/atolbert02/Questforge
+**Live URL:** https://questifyhq.com  *(was questforge-sigma.vercel.app — consolidated 2026-07-04)*
+**Repo:** https://github.com/atolbert02/Questifyhq  *(renamed from questforge 2026-07-04; local git remote updated)*
 **Stack:** Next.js 14 (App Router) · TypeScript · Tailwind · Anthropic SDK · Vercel
 
 ---
@@ -64,6 +64,13 @@
 
 ### 2026-05-29 — Production deployment
 - Synced current API key to Vercel, deployed to production, smoke-tested landing + live generation (both pass).
+
+### 2026-07-04 — Vercel project consolidation onto questifyhq
+- **Product rename fallout cleanup.** The product was renamed mid-build (bought the domain **questifyhq.com**), leaving mismatched names: local folder `questforge`, GitHub `atolbert02/questforge`, and **two** Vercel projects both auto-deploying the same repo — `questifyhq` (real product, owns questifyhq.com) and a redundant `questforge` (only `*.vercel.app`).
+- Confirmed both Vercel projects are Git-connected to the same repo and auto-deploy on push, so the theme commit (`5b25389`) went live on **questifyhq.com** automatically — no manual deploy needed.
+- **Actions:** re-linked the local `.vercel` to the `questifyhq` project; verified questifyhq has `ANTHROPIC_API_KEY` in Production + Preview and serves the themed picker; **deleted the redundant `questforge` Vercel project** (no custom domain attached, only throwaway `*.vercel.app` URLs).
+- GitHub repo renamed `questforge` → **`atolbert02/Questifyhq`** (note the capital `Q` — lowercase `questifyhq` did not resolve over SSH). Local git remote updated to `git@github.com:atolbert02/Questifyhq.git` and verified (HEAD = `5b25389`).
+- **Lesson:** rename the product's repo/project/domain together and update the git remote immediately; a half-done rename left a duplicate Vercel project silently double-deploying.
 
 ### 2026-07-04 — Game-inspired theme system (13 themes)
 - Added `src/lib/themes.ts`: a central registry of 13 themes (Space Station, Kart Racer, Puffball Quest, Block Miner, Wizard School, Super Hero, Nightmare Maze, Zombie Survival, Adventure Quest, Cozy Farm, Monster Tamer, Drop Squad, Beat Drop). Each theme = full token palette + fonts (Google Fonts URL) + effect kind + icon set + optional background. Original art/names (descriptive, non-trademarked).
