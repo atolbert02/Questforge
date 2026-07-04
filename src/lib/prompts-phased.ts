@@ -9,10 +9,14 @@
 //   3. buildAchievementsPrompt -> Achievement[] (after quest IDs are known)
 
 const MAX_TEXT = 80000;
+// Phase calls only need enough of the plan for context — the skeleton already
+// distilled structure. A smaller slice cuts input tokens ~5x across parallel
+// phase calls (cost + TTFT) without hurting quality.
+const MAX_PHASE_TEXT = 12000;
 
-function truncate(text: string): string {
-  return text.length > MAX_TEXT
-    ? text.slice(0, MAX_TEXT) + "\n\n[Document truncated for processing]"
+function truncate(text: string, max: number = MAX_TEXT): string {
+  return text.length > max
+    ? text.slice(0, max) + "\n\n[Document truncated for processing]"
     : text;
 }
 
@@ -68,7 +72,7 @@ export interface PhaseContext {
 }
 
 export function buildPhasePrompt(ctx: PhaseContext, projectText: string): string {
-  const truncated = truncate(projectText);
+  const truncated = truncate(projectText, MAX_PHASE_TEXT);
   const skillList = ctx.skillIds.join(", ");
 
   return `You are a gamification designer generating the quests for ONE phase of a larger project tracker. Stay tightly focused on this single phase.
@@ -89,7 +93,7 @@ VALID SKILL IDS (you may ONLY award XP to these exact ids): ${skillList}
 
 STRICT RULES:
 - Return ONLY a valid JSON array of quest objects. No markdown fences, no explanation, no preamble. Just the raw JSON array, e.g. [ {...}, {...} ].
-- Generate 5–10 quests that belong to THIS phase only.
+- Generate exactly 5–7 quests that belong to THIS phase only. Favor 6. Keep it focused — quality over quantity.
 - Every quest "phase" field MUST equal ${ctx.phaseId}.
 - Quest IDs MUST follow the pattern "p${ctx.phaseId}q1", "p${ctx.phaseId}q2", "p${ctx.phaseId}q3", ... incrementing from 1, with no gaps.
 - Mark 1–2 quests in this phase as "boss": true — the major milestone moments. All others "boss": false.

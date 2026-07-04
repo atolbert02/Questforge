@@ -18,6 +18,7 @@ export interface GenerateInput {
 }
 
 type Progress = (fraction: number, label: string) => void;
+type Partial = (partial: TrackerConfig) => void;
 
 async function postJSON<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
@@ -58,7 +59,8 @@ async function fetchPhaseWithRetry(
 
 export async function generateTracker(
   input: GenerateInput,
-  onProgress: Progress
+  onProgress: Progress,
+  onPartial?: Partial
 ): Promise<TrackerConfig> {
   /* 1. Skeleton — multipart because it may carry a file. */
   onProgress(0.05, "Reading your project plan...");
@@ -77,10 +79,32 @@ export async function generateTracker(
 
   onProgress(0.25, "Mapping out your phases...");
 
-  /* 2. Phases in parallel. Progress ticks up as each one resolves. */
+  // Base config the UI can render immediately (phases + skills, no quests yet).
+  const base: TrackerConfig = {
+    projectTitle: skeleton.projectTitle,
+    tagline: skeleton.tagline,
+    characterName: skeleton.characterName,
+    duration: skeleton.duration,
+    theme: skeleton.theme,
+    levels: skeleton.levels,
+    phases: skeleton.phases,
+    skills: skeleton.skills,
+    quests: [],
+    achievements: [],
+  };
+  onPartial?.(base);
+
+  /* 2. Phases in parallel. Progress ticks up + tracker fills in as each resolves. */
   const skillIds = skeleton.skills.map((s) => s.id);
   const total = skeleton.phases.length;
   let done = 0;
+
+  // Accumulate quests by phase so partial snapshots read top-to-bottom.
+  const questsByPhase = new Map<number, Quest[]>();
+  const emitPartial = () => {
+    const ordered = skeleton.phases.flatMap((p) => questsByPhase.get(p.id) ?? []);
+    onPartial?.({ ...base, quests: ordered });
+  };
 
   const phasePromises = skeleton.phases.map((p) =>
     fetchPhaseWithRetry({
@@ -94,6 +118,8 @@ export async function generateTracker(
       projectText,
     }).then((res) => {
       done++;
+      questsByPhase.set(res.phaseId, res.quests);
+      emitPartial();
       onProgress(0.25 + 0.55 * (done / total), `Forging quests (${done}/${total} phases)...`);
       return res;
     })
@@ -139,6 +165,7 @@ export async function generateTracker(
     achievements,
   };
 
+  onPartial?.(config);
   onProgress(1, "Done!");
   return config;
 }

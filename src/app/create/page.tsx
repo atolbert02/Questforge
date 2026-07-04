@@ -3,9 +3,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import FileDropzone from "@/components/create/FileDropzone";
 import TextPaste from "@/components/create/TextPaste";
+import TrackerShell from "@/components/tracker/TrackerShell";
 import { saveTracker, emptyProgress } from "@/lib/tracker-storage";
 import { validateConfig } from "@/lib/validate-config";
 import { generateTracker } from "@/lib/generate-client";
+import { TrackerConfig } from "@/lib/types";
 
 type State = "idle" | "generating" | "error";
 type InputTab = "upload" | "paste";
@@ -22,6 +24,8 @@ export default function CreatePage() {
   // Real progress (0..1) + label, driven by the orchestrator.
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState("");
+  // Partial tracker snapshots so the tracker fills in live as phases resolve.
+  const [partial, setPartial] = useState<TrackerConfig | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,11 +38,13 @@ export default function CreatePage() {
     setState("generating");
     setProgress(0);
     setProgressLabel("Starting...");
+    setPartial(null);
 
     try {
       const config = await generateTracker(
         { name: name.trim(), file: tab === "upload" ? file : null, text },
-        (fraction, label) => { setProgress(fraction); setProgressLabel(label); }
+        (fraction, label) => { setProgress(fraction); setProgressLabel(label); },
+        (snapshot) => setPartial(snapshot)
       );
 
       const validation = validateConfig(config);
@@ -59,21 +65,43 @@ export default function CreatePage() {
 
   if (state === "generating") {
     const pct = Math.round(progress * 100);
+
+    // Before the skeleton arrives, show a centered progress bar.
+    if (!partial) {
+      return (
+        <main style={{ background: "#05060e", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 16px" }}>
+          <div style={{ width: "100%", maxWidth: "420px", textAlign: "center" }}>
+            <div style={{ fontFamily: "Orbitron, sans-serif", color: "#f97316", fontSize: "0.75rem", letterSpacing: "3px", marginBottom: "24px" }}>
+              GENERATING YOUR TRACKER
+            </div>
+            <div style={{ background: "#1a2535", borderRadius: "6px", height: "10px", overflow: "hidden" }}>
+              <div style={{ width: `${pct}%`, height: "100%", background: "#f97316", borderRadius: "6px", transition: "width 0.4s ease" }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
+              <span style={{ color: "#94a3b8", fontSize: "0.9rem" }}>{progressLabel}</span>
+              <span style={{ fontFamily: "IBM Plex Mono, monospace", color: "#64748b", fontSize: "0.85rem" }}>{pct}%</span>
+            </div>
+          </div>
+        </main>
+      );
+    }
+
+    // Once the skeleton exists, render the tracker live with a slim status bar on top.
     return (
-      <main style={{ background: "#05060e", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 16px" }}>
-        <div style={{ width: "100%", maxWidth: "420px", textAlign: "center" }}>
-          <div style={{ fontFamily: "Orbitron, sans-serif", color: "#f97316", fontSize: "0.75rem", letterSpacing: "3px", marginBottom: "24px" }}>
-            GENERATING YOUR TRACKER
-          </div>
-          <div style={{ background: "#1a2535", borderRadius: "6px", height: "10px", overflow: "hidden" }}>
-            <div style={{ width: `${pct}%`, height: "100%", background: "#f97316", borderRadius: "6px", transition: "width 0.4s ease" }} />
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
-            <span style={{ color: "#94a3b8", fontSize: "0.9rem" }}>{progressLabel}</span>
-            <span style={{ fontFamily: "IBM Plex Mono, monospace", color: "#64748b", fontSize: "0.85rem" }}>{pct}%</span>
+      <div style={{ background: "#05060e", minHeight: "100vh" }}>
+        <div style={{ position: "sticky", top: 0, zIndex: 50, background: "#0d1117ee", borderBottom: "1px solid #1a2535", backdropFilter: "blur(6px)" }}>
+          <div style={{ maxWidth: "900px", margin: "0 auto", padding: "10px 24px", display: "flex", alignItems: "center", gap: "16px" }}>
+            <span style={{ fontFamily: "Orbitron, sans-serif", color: "#f97316", fontSize: "0.7rem", letterSpacing: "2px", whiteSpace: "nowrap" }}>
+              {progressLabel}
+            </span>
+            <div style={{ flex: 1, background: "#1a2535", borderRadius: "6px", height: "6px", overflow: "hidden" }}>
+              <div style={{ width: `${pct}%`, height: "100%", background: "#f97316", borderRadius: "6px", transition: "width 0.4s ease" }} />
+            </div>
+            <span style={{ fontFamily: "IBM Plex Mono, monospace", color: "#64748b", fontSize: "0.8rem" }}>{pct}%</span>
           </div>
         </div>
-      </main>
+        <TrackerShell config={partial} initialProgress={emptyProgress()} preview />
+      </div>
     );
   }
 

@@ -6,6 +6,8 @@ interface Props {
   config: TrackerConfig;
   completedSet: Set<string>;
   onToggle: (id: string) => void;
+  /** While generating, phases with no quests yet show a shimmer placeholder. */
+  preview?: boolean;
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -29,9 +31,32 @@ const KEYFRAMES = `
   0%   { transform: translateY(0); opacity: 1; }
   100% { transform: translateY(-50px); opacity: 0; }
 }
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
 `;
 
-export default function QuestList({ config, completedSet, onToggle }: Props) {
+function ShimmerRows() {
+  return (
+    <>
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          style={{
+            height: "58px", borderRadius: "8px", marginBottom: "8px",
+            background: "linear-gradient(90deg, #0d1117 0%, #131a26 50%, #0d1117 100%)",
+            backgroundSize: "800px 100%",
+            animation: "shimmer 1.3s ease-in-out infinite",
+            border: "1px solid #1a2535",
+          }}
+        />
+      ))}
+    </>
+  );
+}
+
+export default function QuestList({ config, completedSet, onToggle, preview = false }: Props) {
   const [phaseFilter, setPhaseFilter] = useState<number | null>(null);
   const [recentlyCompleted, setRecentlyCompleted] = useState<Set<string>>(new Set());
   const [floatingXP, setFloatingXP] = useState<Set<string>>(new Set());
@@ -76,12 +101,14 @@ export default function QuestList({ config, completedSet, onToggle }: Props) {
 
       {grouped.map(({ phase, quests }) => {
         const pDone = quests.filter((q) => completedSet.has(q.id)).length;
+        const pending = preview && quests.length === 0;
         return (
           <div key={phase.id}>
             <div style={{ fontFamily: "Orbitron, sans-serif", fontSize: "0.7rem", letterSpacing: "2px", color: phase.color, borderBottom: "1px solid #1a2535", paddingBottom: "8px", marginBottom: "10px", marginTop: "20px", display: "flex", justifyContent: "space-between" }}>
               <span>{phase.label}</span>
-              <span style={{ color: "#64748b" }}>{pDone}/{quests.length}</span>
+              <span style={{ color: "#64748b" }}>{pending ? "forging…" : `${pDone}/${quests.length}`}</span>
             </div>
+            {pending && <ShimmerRows />}
             {quests.map((q) => {
               const done = completedSet.has(q.id);
               const popping = recentlyCompleted.has(q.id);

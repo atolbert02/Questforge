@@ -15,7 +15,9 @@ type Tab = "dashboard" | "quests" | "skills" | "roadmap" | "achievements";
 interface Props {
   config: TrackerConfig;
   initialProgress: TrackerProgress;
-  onNewTracker: () => void;
+  onNewTracker?: () => void;
+  /** Read-only mode used while the tracker is still being generated. */
+  preview?: boolean;
 }
 
 export function getLevel(xp: number, levels: TrackerConfig["levels"]) {
@@ -26,9 +28,9 @@ export function getLevel(xp: number, levels: TrackerConfig["levels"]) {
   return { idx, level: levels[idx], next: levels[idx + 1] };
 }
 
-export default function TrackerShell({ config, initialProgress, onNewTracker }: Props) {
+export default function TrackerShell({ config, initialProgress, onNewTracker, preview = false }: Props) {
   const [progress, setProgress] = useState<TrackerProgress>(initialProgress);
-  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const [activeTab, setActiveTab] = useState<Tab>(preview ? "quests" : "dashboard");
   const [toast, setToast] = useState("");
   const prevUnlockedRef = useRef<Set<string>>(new Set());
 
@@ -50,6 +52,7 @@ export default function TrackerShell({ config, initialProgress, onNewTracker }: 
   }
 
   function toggleQuest(id: string) {
+    if (preview) return; // interactions disabled while generating
     const newCompleted = completedSet.has(id)
       ? progress.completed.filter((c) => c !== id)
       : [...progress.completed, id];
@@ -95,20 +98,22 @@ export default function TrackerShell({ config, initialProgress, onNewTracker }: 
                 </div>
               </div>
             </div>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <button
-                onClick={() => exportTrackerHTML(config, progress)}
-                style={{ background: "#1a2535", color: "#e2e8f0", border: "1px solid #374151", borderRadius: "6px", padding: "8px 14px", cursor: "pointer", fontSize: "0.8rem" }}
-              >
-                Download HTML
-              </button>
-              <button
-                onClick={onNewTracker}
-                style={{ background: "transparent", color: "#64748b", border: "1px solid #1a2535", borderRadius: "6px", padding: "8px 14px", cursor: "pointer", fontSize: "0.8rem" }}
-              >
-                New Tracker
-              </button>
-            </div>
+            {!preview && (
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  onClick={() => exportTrackerHTML(config, progress)}
+                  style={{ background: "#1a2535", color: "#e2e8f0", border: "1px solid #374151", borderRadius: "6px", padding: "8px 14px", cursor: "pointer", fontSize: "0.8rem" }}
+                >
+                  Download HTML
+                </button>
+                <button
+                  onClick={onNewTracker}
+                  style={{ background: "transparent", color: "#64748b", border: "1px solid #1a2535", borderRadius: "6px", padding: "8px 14px", cursor: "pointer", fontSize: "0.8rem" }}
+                >
+                  New Tracker
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -136,7 +141,7 @@ export default function TrackerShell({ config, initialProgress, onNewTracker }: 
       {/* Content */}
       <div style={{ maxWidth: "900px", margin: "0 auto", padding: "24px" }}>
         {activeTab === "dashboard" && <Dashboard config={config} progress={progress} completedSet={completedSet} totalXP={totalXP} level={level} unlockedSet={unlockedSet} onToggle={toggleQuest} />}
-        {activeTab === "quests" && <QuestList config={config} completedSet={completedSet} onToggle={toggleQuest} />}
+        {activeTab === "quests" && <QuestList config={config} completedSet={completedSet} onToggle={toggleQuest} preview={preview} />}
         {activeTab === "skills" && <SkillTree config={config} completedSet={completedSet} />}
         {activeTab === "roadmap" && <Roadmap config={config} completedSet={completedSet} />}
         {activeTab === "achievements" && <Achievements config={config} completedSet={completedSet} unlockedSet={unlockedSet} prevUnlockedSet={prevUnlockedRef.current} />}
