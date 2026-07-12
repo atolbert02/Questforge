@@ -19,26 +19,27 @@ interface Props {
 export default function Hud({ rank, levelIdx, totalXP, nextMin, xpPct, zoneLabel, focusPrompt, isTouch, onSettings, onClose }: Props) {
   return (
     <>
-      {/* Top-left: rank + XP, straight from tracker state. */}
-      <div style={{ position: "absolute", top: 12, left: 12, zIndex: 10, background: "rgba(15,15,27,0.85)", border: `2px solid ${PALETTE.bone}`, padding: "10px 12px", maxWidth: "min(300px, 60vw)" }}>
-        <div style={{ ...smallText, color: PALETTE.gold }}>
-          Lv.{levelIdx + 1} {rank.toUpperCase()}
+      {/* Top bar: rank + XP (live tracker state), zone name, buttons.
+          flex-wrap keeps it readable on narrow phones. */}
+      <div style={{ position: "absolute", top: 12, left: 12, right: 12, zIndex: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", flexWrap: "wrap", pointerEvents: "none" }}>
+        <div style={{ background: "rgba(15,15,27,0.85)", border: `2px solid ${PALETTE.bone}`, padding: "10px 12px" }}>
+          <div style={{ ...smallText, color: PALETTE.gold }}>
+            Lv.{levelIdx + 1} {rank.toUpperCase()}
+          </div>
+          <div style={{ background: PALETTE.ink, border: `1px solid ${PALETTE.slate}`, height: "10px", width: "170px", marginTop: "6px" }}>
+            <div style={{ background: PALETTE.gold, height: "100%", width: `${xpPct}%` }} />
+          </div>
+          <div style={{ ...smallText, color: PALETTE.slate, marginTop: "4px" }}>
+            {nextMin !== null ? `${totalXP}/${nextMin} XP` : `${totalXP} XP (MAX)`}
+          </div>
         </div>
-        <div style={{ background: PALETTE.ink, border: `1px solid ${PALETTE.slate}`, height: "10px", width: "170px", marginTop: "6px" }}>
-          <div style={{ background: PALETTE.gold, height: "100%", width: `${xpPct}%` }} />
+        <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", flexWrap: "wrap", justifyContent: "flex-end", pointerEvents: "auto" }}>
+          <div style={{ ...smallText, background: "rgba(15,15,27,0.85)", border: `2px solid ${PALETTE.bone}`, padding: "10px 12px", color: PALETTE.sky }}>
+            {zoneLabel}
+          </div>
+          <button onClick={onSettings} aria-label="Adventure settings" style={pixelButton(PALETTE.ink, PALETTE.bone)}>⚙</button>
+          <button onClick={onClose} aria-label="Exit Adventure Mode" style={pixelButton(PALETTE.ember, PALETTE.bone)}>✕</button>
         </div>
-        <div style={{ ...smallText, color: PALETTE.slate, marginTop: "4px" }}>
-          {nextMin !== null ? `${totalXP}/${nextMin} XP` : `${totalXP} XP (MAX)`}
-        </div>
-      </div>
-
-      {/* Top-right: zone + buttons. */}
-      <div style={{ position: "absolute", top: 12, right: 12, zIndex: 10, display: "flex", gap: "8px", alignItems: "flex-start" }}>
-        <div style={{ ...smallText, background: "rgba(15,15,27,0.85)", border: `2px solid ${PALETTE.bone}`, padding: "10px 12px", color: PALETTE.sky, maxWidth: "40vw" }}>
-          {zoneLabel}
-        </div>
-        <button onClick={onSettings} aria-label="Adventure settings" style={pixelButton(PALETTE.ink, PALETTE.bone)}>⚙</button>
-        <button onClick={onClose} aria-label="Exit Adventure Mode" style={pixelButton(PALETTE.ember, PALETTE.bone)}>✕</button>
       </div>
 
       {/* Bottom: interaction prompt / controls hint. */}
