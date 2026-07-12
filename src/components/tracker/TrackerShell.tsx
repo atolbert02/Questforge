@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { TrackerConfig, TrackerProgress } from "@/lib/types";
 import { getTheme } from "@/lib/themes";
 import { saveProgress } from "@/lib/tracker-storage";
@@ -7,6 +8,17 @@ import { evaluateAchievements } from "@/lib/achievements";
 import { exportTrackerHTML } from "@/lib/export-html";
 import { playThemeEffect } from "./effects/theme-effect";
 import { playThemeSound, isMuted, setMuted } from "@/lib/use-theme-sound";
+// Adventure Mode is fully code-split: pixi.js and all game code load only
+// when the toggle is pressed. Delete src/adventure/ + this block to remove it.
+const AdventureMode = dynamic(() => import("@/adventure/AdventureMode"), {
+  ssr: false,
+  loading: () => (
+    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "#0f0f1b", display: "flex", alignItems: "center", justifyContent: "center", color: "#f4f4ec", fontFamily: "monospace", fontSize: "0.85rem" }}>
+      Entering the overworld…
+    </div>
+  ),
+});
+
 import Dashboard from "./Dashboard";
 import QuestList from "./QuestList";
 import SkillTree from "./SkillTree";
@@ -36,6 +48,7 @@ export default function TrackerShell({ config, initialProgress, onNewTracker, pr
   const [activeTab, setActiveTab] = useState<Tab>(preview ? "quests" : "dashboard");
   const [toast, setToast] = useState("");
   const [muted, setMutedState] = useState(false);
+  const [adventureOpen, setAdventureOpen] = useState(false);
   const prevUnlockedRef = useRef<Set<string>>(new Set());
   const pointerRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -163,6 +176,13 @@ export default function TrackerShell({ config, initialProgress, onNewTracker, pr
               {!preview && (
                 <>
                   <button
+                    onClick={() => setAdventureOpen(true)}
+                    title="Explore your quests as an isometric world"
+                    style={{ background: accent, color: t.onAccent, border: `1px solid ${t.borderStrong}`, borderRadius: "6px", padding: "8px 14px", cursor: "pointer", fontSize: "0.8rem", fontWeight: 700 }}
+                  >
+                    ⚔️ Adventure
+                  </button>
+                  <button
                     onClick={() => exportTrackerHTML(config, progress)}
                     style={{ background: t.border, color: t.text, border: `1px solid ${t.borderStrong}`, borderRadius: "6px", padding: "8px 14px", cursor: "pointer", fontSize: "0.8rem" }}
                   >
@@ -209,6 +229,16 @@ export default function TrackerShell({ config, initialProgress, onNewTracker, pr
         {activeTab === "roadmap" && <Roadmap config={config} completedSet={completedSet} />}
         {activeTab === "achievements" && <Achievements config={config} completedSet={completedSet} unlockedSet={unlockedSet} prevUnlockedSet={prevUnlockedRef.current} />}
       </div>
+
+      {/* Adventure Mode — same state, different view. See src/adventure/README.md */}
+      {adventureOpen && !preview && (
+        <AdventureMode
+          config={config}
+          progress={progress}
+          onToggleQuest={toggleQuest}
+          onClose={() => setAdventureOpen(false)}
+        />
+      )}
 
       {/* Toast */}
       {toast && (
