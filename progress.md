@@ -83,6 +83,16 @@
 
 **Follow-ups (not yet done):** source/author distinct sound recipes per theme if richer audio is wanted; consider theming the quest-type badge palette further; the pixel-font (Press Start 2P) tab row scrolls horizontally on narrow screens (acceptable, by design).
 
+### 2026-07-11 — Adventure Mode (isometric 2.5D world view)
+- New optional **"⚔️ Adventure" toggle** on the tracker opens an isometric pixel-art overworld generated from the user's real plan: phases → islands (bridged, gated until the previous phase's boss falls), quests → chests/villagers/shrines by type, boss tasks → 3-strike boss encounters, achievements → flag markers, XP/level/rank → HUD + avatar tunic tier.
+- **Single source of truth:** the game holds no quest state — it receives `config`/`progress` as props and completions call TrackerShell's own `toggleQuest`. Verified both directions live (game completion → tracker dashboard 190 XP / 4-13 quests / level-up to Adventurer; and lock/fog recompute on every progress change).
+- **Engine:** Pixi 8 behind `next/dynamic({ssr:false})` + a runtime `import()`, so pixi + game code live in lazy chunks — `/tracker` First Load JS 104→106 kB (dynamic stub only; verified via `app-build-manifest` that no pixi chunk is in the initial load). ~101 fps in dev.
+- **Art with zero binary assets:** all sprites generated at runtime from pixel templates (fixed 16-color palette, ≤3 colors/sprite + ink outline, NES-style); `MANIFEST.url` lets real packs (e.g. Kenney CC0) drop in later. CRT scanlines/vignette as pure-CSS overlay.
+- **Accessibility:** WASD/arrows + E/Space on desktop, tap-to-move (BFS pathfinding) on touch; `prefers-reduced-motion` defaults CRT off and effects reduced, with manual overrides in an in-game settings panel; engine failure falls back to the tracker via error boundary.
+- Full docs in `src/adventure/README.md` (architecture, mapping table, art swap, clean removal: delete one folder + one toggle block).
+- **Bugfix found while verifying:** tapping an interactable while already adjacent produced an empty BFS path and never fired the interaction — empty path now interacts immediately.
+- **Lesson:** rendering a game as a *view* over existing React state (props in, the tracker's own mutation function out) made two-way sync free — no event bus, no duplicated store, no reconciliation.
+
 ---
 
 ## Issues & Resolutions
