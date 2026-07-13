@@ -2,9 +2,12 @@
 import { Component, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { TrackerConfig, TrackerProgress } from "@/lib/types";
 import { getLevel } from "@/components/tracker/TrackerShell";
+import { getTheme } from "@/lib/themes";
+import { evaluateAchievements } from "@/lib/achievements";
 import { AdventureSettings, loadSettings, resolveSettings, saveSettings } from "./settings";
 import { buildWorld } from "./world/mapping";
 import type { AdventureGame, FocusTarget } from "./engine/game";
+import { getAdventureStyle, type AdventureStyle } from "./style";
 import { PALETTE } from "./assets/sprites";
 import { PIXEL_FONT, panel, pixelButton, smallText } from "./ui/pixel";
 import Hud from "./ui/Hud";
@@ -67,18 +70,23 @@ export function LoadFailed({ onClose }: { onClose: () => void }) {
 
 export default function AdventureMode(props: AdventureModeProps) {
   const [settings, setSettings] = useState<AdventureSettings>(() => loadSettings());
+  const style = useMemo(() => getAdventureStyle(getTheme(props.config.themeId)), [props.config.themeId]);
 
-  // Load the pixel font once (same pattern TrackerShell uses for theme fonts).
+  // Always load the pixel font (fallback UI uses it), plus this theme's font.
   useEffect(() => {
-    const id = "qf-adventure-font";
-    if (!document.getElementById(id)) {
+    const ensure = (id: string, href: string) => {
+      if (document.getElementById(id)) return;
       const link = document.createElement("link");
       link.id = id;
       link.rel = "stylesheet";
-      link.href = FONT_URL;
+      link.href = href;
       document.head.appendChild(link);
+    };
+    ensure("qf-adventure-font", FONT_URL);
+    if (style.fontUrl && style.fontUrl !== FONT_URL) {
+      ensure(`qf-adventure-font-${props.config.themeId ?? "default"}`, style.fontUrl);
     }
-  }, []);
+  }, [style.fontUrl, props.config.themeId]);
 
   // Close on Escape.
   useEffect(() => {
@@ -101,10 +109,11 @@ export default function AdventureMode(props: AdventureModeProps) {
   const effective = resolveSettings(settings);
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: PALETTE.ink }} role="dialog" aria-label="Adventure Mode">
+    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: style.background }} role="dialog" aria-label="Adventure Mode">
       <GameErrorBoundary onClose={props.onClose}>
         <GameStage
           {...props}
+          style={style}
           reduceFx={effective.reduceFx}
           crt={effective.crt}
           settings={settings}
@@ -116,6 +125,7 @@ export default function AdventureMode(props: AdventureModeProps) {
 }
 
 interface GameStageProps extends AdventureModeProps {
+  style: AdventureStyle;
   reduceFx: boolean;
   crt: boolean;
   settings: AdventureSettings;
@@ -138,12 +148,17 @@ function GameStage(props: GameStageProps) {
   const [banner, setBanner] = useState<{ text: string; color: string } | null>(null);
   const bannerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevLevelRef = useRef<number | null>(null);
+  const completeInitRef = useRef<boolean | null>(null);
 
   const world = useMemo(() => buildWorld(config), [config]);
   const completedSet = useMemo(() => new Set(progress.completed), [progress.completed]);
   const totalXP = config.quests
     .filter((q) => completedSet.has(q.id))
     .reduce((sum, q) => sum + q.xp, 0);
+  const allComplete =
+    config.quests.length > 0 &&
+    completedSet.size === config.quests.length &&
+    evaluateAchievements(config.achievements, config.quests, progress).size === config.achievements.length;
   const { idx: levelIdx, level, next } = getLevel(totalXP, config.levels);
   const xpPct = next ? Math.round(((totalXP - level.min) / (next.min - level.min)) * 100) : 100;
 
@@ -181,7 +196,8 @@ function GameStage(props: GameStageProps) {
             completed: new Set(progressRef.current.completed),
             levelIdx: levelRef.current,
             reduceFx: reduceFxRef.current,
-          }
+          },
+          props.style
         );
         if (cancelled) {
           game.destroy();
@@ -219,7 +235,17 @@ function GameStage(props: GameStageProps) {
       showBanner(`⬆ LEVEL UP! ${level.title.toUpperCase()}`, PALETTE.gold);
     }
     prevLevelRef.current = levelIdx;
-  }, [completedSet, levelIdx, level.title, status]);
+
+    // 100% completion — fire once on the false→true transition (not on mount at 100%).
+    if (completeInitRef.current === null) {
+      completeInitRef.current = allComplete;
+    } else if (allComplete && !completeInitRef.current) {
+      completeInitRef.current = true;
+      gameRef.current?.levelUpBurst();
+      showBanner("🏆 WORLD COMPLETE!", PALETTE.gold);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [completedSet, levelIdx, level.title, status, allComplete]);
 
   useEffect(() => {
     gameRef.current?.setReduceFx(props.reduceFx);
@@ -263,14 +289,19 @@ function GameStage(props: GameStageProps) {
 
   if (status === "failed") return <LoadFailed onClose={onClose} />;
 
+  const style = props.style;
+
   return (
-    <div style={{ position: "absolute", inset: 0, imageRendering: "pixelated" }}>
-      {/* Pixi mounts its canvas here. */}
-      <div ref={hostRef} style={{ position: "absolute", inset: 0 }} />
+    <div style={{ position: "absolute", inset: 0, imageRendering: style.chrome.pixelated ? "pixelated" : "auto" }}>
+      {/* Pixi mounts its canvas here. Sketch themes get a hand-drawn wobble. */}
+      <div
+        ref={hostRef}
+        style={{ position: "absolute", inset: 0, filter: style.sketch ? "url(#adv-sketch)" : undefined }}
+      />
 
       {status === "loading" && (
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ fontFamily: PIXEL_FONT, fontSize: "0.75rem", color: PALETTE.bone }}>
+          <div style={{ fontFamily: style.chrome.font, fontSize: "0.75rem", color: style.chrome.text }}>
             Generating overworld…
           </div>
         </div>
@@ -351,8 +382,45 @@ function GameStage(props: GameStageProps) {
         <SettingsPanel settings={props.settings} onUpdate={props.onUpdateSettings} onClose={() => setShowSettings(false)} />
       )}
 
+      <StyleOverlay style={style} />
       {props.crt && <CrtOverlay />}
+      {style.sketch && <SketchFilterDef />}
     </div>
+  );
+}
+
+/** Per-profile atmosphere: scanlines (pixel), soft grain+vignette (sketch), else none. */
+function StyleOverlay({ style }: { style: AdventureStyle }) {
+  if (style.overlay === "none" || style.overlay === "crt") return null;
+  if (style.overlay === "scanline") {
+    return (
+      <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 15, pointerEvents: "none",
+        background: "repeating-linear-gradient(0deg, rgba(0,0,0,0.10) 0px, rgba(0,0,0,0.10) 1px, transparent 1px, transparent 3px)" }} />
+    );
+  }
+  // paper (sketch): warm grain + heavy vignette for a hand-drawn, storybook feel.
+  return (
+    <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 15, pointerEvents: "none" }}>
+      <div style={{ position: "absolute", inset: 0, mixBlendMode: "multiply",
+        backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E\")",
+        opacity: 0.25 }} />
+      <div style={{ position: "absolute", inset: 0,
+        background: "radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.55) 100%)" }} />
+    </div>
+  );
+}
+
+/** Hidden SVG filter that gives sketch themes a subtle hand-drawn displacement. */
+function SketchFilterDef() {
+  return (
+    <svg aria-hidden width="0" height="0" style={{ position: "absolute" }}>
+      <defs>
+        <filter id="adv-sketch">
+          <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="2" seed="7" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </defs>
+    </svg>
   );
 }
 

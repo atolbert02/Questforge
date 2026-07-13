@@ -82,26 +82,27 @@ function speck(x: number, y: number): boolean {
  * An isometric floor tile: diamond top face + extruded left/right side faces.
  * 3 colors: top, speckle, side.
  */
-function makeTile(top: PaletteKey, dot: PaletteKey, side: PaletteKey): HTMLCanvasElement {
+/** Core tile renderer working in raw hex, so themes can re-tint the ground. */
+function makeTileCore(topHex: string, dotHex: string, sideHex: string): HTMLCanvasElement {
   const c = document.createElement("canvas");
   c.width = TILE_W;
   c.height = TILE_H + TILE_DEPTH;
   const g = c.getContext("2d")!;
   const rowW = (r: number) => (r < TILE_H / 2 ? 4 * (r + 1) : 4 * (TILE_H - r));
   // Side faces: the bottom half of the diamond, extruded down.
-  g.fillStyle = PALETTE[side];
+  g.fillStyle = sideHex;
   for (let r = TILE_H / 2; r < TILE_H; r++) {
     const w = rowW(r);
     g.fillRect(TILE_W / 2 - w / 2, r, w, TILE_DEPTH);
   }
   // Top face.
-  g.fillStyle = PALETTE[top];
+  g.fillStyle = topHex;
   for (let r = 0; r < TILE_H; r++) {
     const w = rowW(r);
     g.fillRect(TILE_W / 2 - w / 2, r, w, 1);
   }
   // Speckles on the top face.
-  g.fillStyle = PALETTE[dot];
+  g.fillStyle = dotHex;
   for (let r = 2; r < TILE_H - 2; r++) {
     const w = rowW(r) - 4;
     for (let x = TILE_W / 2 - w / 2; x < TILE_W / 2 + w / 2; x += 2) {
@@ -109,6 +110,15 @@ function makeTile(top: PaletteKey, dot: PaletteKey, side: PaletteKey): HTMLCanva
     }
   }
   return c;
+}
+
+function makeTile(top: PaletteKey, dot: PaletteKey, side: PaletteKey): HTMLCanvasElement {
+  return makeTileCore(PALETTE[top], PALETTE[dot], PALETTE[side]);
+}
+
+/** Build a tile from raw hex (top, speckle, side) — used for per-theme ground. */
+export function makeTileHex(top: string, dot: string, side: string): HTMLCanvasElement {
+  return makeTileCore(top, dot, side);
 }
 
 /** Zone tile variants cycle by phase index: grass, sand, stone, snow, ember, violet. */

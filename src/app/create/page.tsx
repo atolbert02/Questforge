@@ -124,7 +124,7 @@ export default function CreatePage() {
           Generate Your Tracker
         </h1>
         <p style={{ color: "#64748b", marginBottom: "32px", fontSize: "0.9rem" }}>
-          Upload your project plan and Claude will build a personalized gamified quest tracker.
+          Upload your project plan and get a personalized gamified quest tracker.
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>

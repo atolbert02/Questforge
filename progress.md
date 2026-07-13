@@ -26,6 +26,7 @@
 | Tracker UI (Dashboard, Quests, Skills, Roadmap, Achievements) | ✅ Live |
 | Generation pipeline (fan-out, <60s) | ✅ Live — skeleton → parallel phases → achievements |
 | Animations (quest pop, achievement flip) | ✅ Live |
+| Adventure Mode (isometric Pixi world) | ✅ Live — per-theme background/tiles/overlay/font/sketch-filter |
 | Themed effects + synth sound + mute | ✅ Live — per-theme particle burst/banner + Web Audio cues |
 | HTML export (standalone tracker) | ✅ Built — now fully theme-aware (tokens, fonts, FX) |
 | Deployment | ✅ Production on Vercel, auto-deploys on push |
@@ -38,6 +39,16 @@
 ---
 
 ## Timeline
+
+### 2026-07-12 — Theme overhaul, bridge fix, 100% completion celebration
+- **Themes (`src/lib/themes.ts`):** Cozy Farm → **Coastal Cove** (coastal blue/cream, Comfortaa); Nightmare Maze recolored so the 4 requested colors are distinct (gold/teal/olive/rust/navy, warm text — no more yellow/grey-blue repeats); **Super Hero** shifted to a warm red/orange/teal comic palette so it no longer twins Monster Tamer; Block Miner bg lighter+warmer; Puffball font → **Chango** (thick), Monster Tamer font → **Titan One** (Pokémon-like). Added 2 new themes — **Bows & Whiskers** (kawaii pink/lavender) and **Elysian Skies** (Greek-myth cream/wine, Cormorant). Replaced Beat Drop with **Deep Reef** (light "filtered underwater" greens). Registry: `ThemeId` union, `THEMES`, `THEME_LIST`, and `PROFILE_BY_THEME` in `src/adventure/style.ts` (the only compile-time must-fixes). Verified all 15 themes in the picker.
+- **Bridge fix (`src/adventure/world/mapping.ts`):** decorations (trees) could spawn on a 1-wide bridge tile — the deco exclusion set only checked quest/boss tiles, so `DECO_SLOT {0,5}` landed on the bridge-entry tile and `walkable.delete` blocked the crossing. Now a global two-pass excludes every bridge/gate tile **and its 4-neighbors** (covers both approach tiles) before placing decos. Arithmetic check over 6 zones: **0** kept decorations on any bridge/gate tile.
+- **100% completion celebration:** when the final quest completes and every achievement is unlocked, a themed full-screen `CompletionScreen` (stats + Download CTA) fires once, plus staggered `playThemeEffect` bursts + level-up sound (`TrackerShell.tsx`); Adventure Mode mirrors it with a "🏆 WORLD COMPLETE!" banner + burst (`AdventureMode.tsx`). Guard refs ensure it fires only on the false→true transition, not on reloading an already-100% tracker. Verified live (Bows & Whiskers): screen shows correct 4 quests / 580 XP / 5 achievements, and does not re-fire on reload.
+
+### 2026-07-12 — De-AI copy, theme recolor, per-theme Adventure Mode
+- **Removed all user-visible "Claude"/"AI" mentions** (5 strings in Hero, HowItWorks, layout metadata, create page) → product-voice copy ("Questify"/benefit language). Also fixed stale "QuestForge" brand in the theme picker + tab title. Server-side `callClaude`/prompts left untouched.
+- **Retuned all 13 theme palettes** in `src/lib/themes.ts` to user-specified colors (backgrounds, 4 main colors mapped by design judgment, plus harmonized surfaces/text/particles/gradients). Kart→Mario blue, Puffball→Kirby pastels, Block→light grey, Wizard→green-to-red, Super Hero→off-white, Nightmare→#141418 gold/teal, Zombie→moss/tan, Adventure→light parchment, Cozy→coral/teal/leaf, Monster→Pokémon, Drop Squad/Space/Beat→neon on dark. Verified every swatch in the picker; text readable on all.
+- **Adventure Mode is now per-theme** (was one hardcoded pixel skin that ignored the theme). New `src/adventure/style.ts` maps each theme → a profile (pixel / smooth / sketch / neon) and derives background, ground-tile colors (from `themePhaseColors`), overlay (scanline / paper-grain+vignette / none), font, and chrome. Threaded through `game.ts` (background + hex-tinted tiles via new `makeTileHex`) and `AdventureMode.tsx` (theme font load, per-profile overlay, SVG `feDisplacementMap` sketch filter for Nightmare/Zombie). Verified live: Nightmare = dark gold sketch world, Kart = blue smooth world, no console errors. Pixel sprites kept; HUD chrome still arcade-styled (optional future theming).
 
 ### 2026-05-29 — Project scaffold
 - Created full file structure per build plan Section 3 under `~/questforge`.

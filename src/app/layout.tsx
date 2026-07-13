@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
-  title: "QuestForge — Turn Any Plan Into a Game",
-  description: "Upload a project plan and Claude builds you a personalized gamified quest tracker.",
+  title: "Questify — Turn Any Plan Into a Game",
+  description: "Upload a project plan and get a personalized gamified quest tracker.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

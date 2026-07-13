@@ -1,7 +1,7 @@
 export default function HowItWorks() {
   const steps = [
     { icon: "📄", title: "Upload Your Plan", desc: "Drop in a PDF, DOCX, or paste your project plan directly." },
-    { icon: "⚡", title: "Claude Generates", desc: "AI analyzes your plan and builds custom phases, quests, and a skill tree." },
+    { icon: "⚡", title: "Questify Generates", desc: "Your plan is transformed into custom phases, quests, and a skill tree." },
     { icon: "🎯", title: "Track & Conquer", desc: "Work through quests, earn XP, unlock achievements, and export your tracker." },
   ];
 

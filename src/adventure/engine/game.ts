@@ -15,9 +15,11 @@ import {
   TILE_W,
   makeBridgeTile,
   makeHero,
+  makeTileHex,
   makeTileVariant,
 } from "../assets/sprites";
 import { GridPos, WorldModel, key, unlockedZones } from "../world/mapping";
+import type { AdventureStyle } from "../style";
 
 /**
  * The isometric engine. Owns the Pixi app, world rendering, avatar, camera,
@@ -99,6 +101,7 @@ export class AdventureGame {
   private particles: Particle[] = [];
   private shakeT = 0;
   private destroyed = false;
+  private style: AdventureStyle | null = null;
 
   private constructor(
     private host: HTMLElement,
@@ -114,10 +117,12 @@ export class AdventureGame {
     config: TrackerConfig,
     world: WorldModel,
     cb: EngineCallbacks,
-    initial: { completed: Set<string>; levelIdx: number; reduceFx: boolean }
+    initial: { completed: Set<string>; levelIdx: number; reduceFx: boolean },
+    style?: AdventureStyle
   ): Promise<AdventureGame> {
     const game = new AdventureGame(host, config, world, cb);
     game.reduceFx = initial.reduceFx;
+    game.style = style ?? null;
     await game.init(initial);
     return game;
   }
@@ -127,7 +132,7 @@ export class AdventureGame {
     this.app = new Application();
     await this.app.init({
       resizeTo: this.host,
-      background: "#0f0f1b",
+      background: this.style?.background ?? "#0f0f1b",
       antialias: false,
       resolution: Math.min(window.devicePixelRatio || 1, 2),
       autoDensity: true,
@@ -174,7 +179,11 @@ export class AdventureGame {
   private buildTerrain() {
     const bridgeTex = Texture.from(makeBridgeTile());
     for (const zone of this.world.zones) {
-      const tileTex = Texture.from(makeTileVariant(zone.variant));
+      const tileTex = Texture.from(
+        this.style
+          ? makeTileHex(...this.style.tiles[zone.variant % this.style.tiles.length])
+          : makeTileVariant(zone.variant)
+      );
       const sprites: Sprite[] = [];
       for (const t of zone.tiles) {
         // Tiles use zIndex far below props so every prop draws above the floor.

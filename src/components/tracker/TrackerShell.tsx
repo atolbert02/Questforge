@@ -51,6 +51,8 @@ export default function TrackerShell({ config, initialProgress, onNewTracker, pr
   const [adventureOpen, setAdventureOpen] = useState(false);
   const prevUnlockedRef = useRef<Set<string>>(new Set());
   const pointerRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [showCompletion, setShowCompletion] = useState(false);
+  const celebratedRef = useRef(false);
 
   const theme = getTheme(config.themeId);
   const t = theme.tokens;
@@ -121,6 +123,29 @@ export default function TrackerShell({ config, initialProgress, onNewTracker, pr
           playThemeSound(theme, "levelUp");
           showToast(`${theme.icons.levelUp} Level up — ${newLevel.level.title}!`);
         }, 550);
+      }
+
+      // 100% completion: every quest done AND every achievement unlocked. Fires once.
+      const newUnlocked = evaluateAchievements(config.achievements, config.quests, newProgress);
+      const allDone =
+        config.quests.length > 0 &&
+        new Set(newCompleted).size === config.quests.length &&
+        newUnlocked.size === config.achievements.length;
+      if (allDone && !celebratedRef.current) {
+        celebratedRef.current = true;
+        [200, 500, 800, 1100, 1400].forEach((d) =>
+          setTimeout(
+            () =>
+              playThemeEffect(
+                theme,
+                window.innerWidth * (0.25 + Math.random() * 0.5),
+                window.innerHeight * (0.2 + Math.random() * 0.35)
+              ),
+            d
+          )
+        );
+        setTimeout(() => playThemeSound(theme, "levelUp"), 250);
+        setTimeout(() => setShowCompletion(true), 700);
       }
     }
   }
@@ -250,6 +275,96 @@ export default function TrackerShell({ config, initialProgress, onNewTracker, pr
           {toast}
         </div>
       )}
+
+      {showCompletion && (
+        <CompletionScreen
+          theme={theme}
+          totalXP={totalXP}
+          questCount={config.quests.length}
+          achievementCount={config.achievements.length}
+          finalTitle={level.title}
+          onClose={() => setShowCompletion(false)}
+          onDownload={() => exportTrackerHTML(config, progress)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Full-screen themed celebration shown once the tracker hits 100%. */
+function CompletionScreen({
+  theme, totalXP, questCount, achievementCount, finalTitle, onClose, onDownload,
+}: {
+  theme: ReturnType<typeof getTheme>;
+  totalXP: number;
+  questCount: number;
+  achievementCount: number;
+  finalTitle: string;
+  onClose: () => void;
+  onDownload: () => void;
+}) {
+  const t = theme.tokens;
+  const f = theme.fonts;
+  const stat = (value: string | number, label: string) => (
+    <div style={{ textAlign: "center" }}>
+      <div style={{ fontFamily: f.display, fontSize: "1.6rem", color: t.accent }}>{value}</div>
+      <div style={{ fontFamily: f.mono, fontSize: "0.65rem", color: t.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginTop: "4px" }}>{label}</div>
+    </div>
+  );
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "24px", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
+        animation: "qfCompFade 0.4s ease",
+      }}
+    >
+      <style>{`
+        @keyframes qfCompFade { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes qfCompPop { 0% { transform: scale(0.85); opacity: 0 } 60% { transform: scale(1.03) } 100% { transform: scale(1); opacity: 1 } }
+      `}</style>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(460px, calc(100vw - 40px))", background: t.bgCard,
+          border: `2px solid ${t.accent}`, borderRadius: "16px", padding: "36px 28px",
+          textAlign: "center", boxShadow: `0 0 60px ${t.accent}55`,
+          animation: "qfCompPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275)",
+        }}
+        role="dialog"
+        aria-label="Tracker complete"
+      >
+        <div style={{ fontSize: "3rem", marginBottom: "8px" }}>{theme.icons.levelUp}🏆</div>
+        <div style={{ fontFamily: f.mono, fontSize: "0.7rem", letterSpacing: "3px", color: t.gold, marginBottom: "10px" }}>
+          100% COMPLETE
+        </div>
+        <h2 style={{ fontFamily: f.display, fontSize: "1.7rem", color: t.accent, margin: "0 0 6px", lineHeight: 1.15 }}>
+          Quest Complete!
+        </h2>
+        <p style={{ color: t.textMuted, fontSize: "0.9rem", margin: "0 0 24px", lineHeight: 1.5 }}>
+          You cleared every quest and unlocked every achievement. True {finalTitle}.
+        </p>
+        <div style={{ display: "flex", justifyContent: "center", gap: "24px", marginBottom: "28px", flexWrap: "wrap" }}>
+          {stat(questCount, "Quests")}
+          {stat(totalXP, "Total XP")}
+          {stat(achievementCount, "Achievements")}
+        </div>
+        <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+          <button
+            onClick={onDownload}
+            style={{ background: t.accent, color: t.onAccent, border: "none", borderRadius: "8px", padding: "12px 20px", fontWeight: 700, fontFamily: f.display, cursor: "pointer", fontSize: "0.95rem" }}
+          >
+            Download My Tracker
+          </button>
+          <button
+            onClick={onClose}
+            style={{ background: "transparent", color: t.textMuted, border: `1px solid ${t.border}`, borderRadius: "8px", padding: "12px 20px", cursor: "pointer", fontSize: "0.9rem" }}
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

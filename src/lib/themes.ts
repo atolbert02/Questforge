@@ -26,7 +26,9 @@ export type ThemeId =
   | "cozy"
   | "monster"
   | "dropsquad"
-  | "beat";
+  | "kitty"
+  | "elysian"
+  | "reef";
 
 export type EffectKind =
   | "confetti"
@@ -129,13 +131,13 @@ export const THEMES: Record<ThemeId, GameTheme> = {
   space: {
     id: "space",
     name: "Space Station",
-    blurb: "Neon cyberpunk command deck — the classic QuestForge look.",
+    blurb: "Neon cyberpunk command deck — the classic Questify look.",
     inspiredBy: "sci-fi",
     tokens: {
-      bgDeep: "#05060e", bgCard: "#0d1117", bgHover: "#131a26", border: "#1a2535",
-      borderStrong: "#374151", text: "#e2e8f0", textMuted: "#64748b", textDim: "#94a3b8",
-      accent: "#f97316", secondary: "#22d3ee", success: "#4ade80", gold: "#fbbf24",
-      danger: "#fb7185", onAccent: "#05060e",
+      bgDeep: "#0b0f19", bgCard: "#121826", bgHover: "#1b2436", border: "#283348",
+      borderStrong: "#475569", text: "#e8eef7", textMuted: "#94a3b8", textDim: "#b4c0d4",
+      accent: "#00e5ff", secondary: "#ff007f", success: "#3affc0", gold: "#ffc94d",
+      danger: "#ff5470", onAccent: "#05060e",
     },
     fonts: {
       display: "'Orbitron', sans-serif",
@@ -143,8 +145,9 @@ export const THEMES: Record<ThemeId, GameTheme> = {
       mono: "'IBM Plex Mono', monospace",
       googleFontsUrl: GF + "family=Orbitron:wght@400;700;900&family=DM+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap",
     },
-    effect: { kind: "confetti", particleColors: ["#f97316", "#22d3ee", "#4ade80", "#a78bfa"], bossGlow: "#f97316" },
+    effect: { kind: "confetti", particleColors: ["#00e5ff", "#ff007f", "#3affc0", "#ffc94d"], bossGlow: "#00e5ff" },
     sound: sounds("space"),
+    background: "radial-gradient(circle at 50% 0%,#111a2e 0%,#0b0f19 70%)",
     icons: { ...BASE_ICONS, learn: "🛰️", build: "🔧", create: "✨", research: "🔬", practice: "🎯", document: "📡", levelUp: "🚀" },
   },
 
@@ -154,7 +157,7 @@ export const THEMES: Record<ThemeId, GameTheme> = {
     blurb: "Rev the engine — checkered flags, coins, and pure speed.",
     inspiredBy: "kart racing",
     tokens: {
-      bgDeep: "#eaf4ff", bgCard: "#ffffff", bgHover: "#dbeeff", border: "#b9d6f2",
+      bgDeep: "#44baed", bgCard: "#ffffff", bgHover: "#eaf7ff", border: "#b9d6f2",
       borderStrong: "#7fb0e0", text: "#0b2545", textMuted: "#5a7a9a", textDim: "#3d5a80",
       accent: "#ff3b3b", secondary: "#1e90ff", success: "#2ecc71", gold: "#ffb703",
       danger: "#e63946", onAccent: "#ffffff",
@@ -167,7 +170,7 @@ export const THEMES: Record<ThemeId, GameTheme> = {
     },
     effect: { kind: "coin", particleColors: ["#ffb703", "#ff3b3b", "#1e90ff"], bossGlow: "#ff3b3b" },
     sound: sounds("kart"),
-    background: "linear-gradient(180deg,#eaf4ff 0%,#dbeeff 100%)",
+    background: "linear-gradient(180deg,#44baed 0%,#2fa8de 100%)",
     icons: { learn: "🏁", build: "🔧", create: "🎨", research: "🗺️", practice: "🏎️", document: "📋", levelUp: "🏆" },
   },
 
@@ -177,20 +180,20 @@ export const THEMES: Record<ThemeId, GameTheme> = {
     blurb: "Soft, sweet, and starry — bounce through candy-colored worlds.",
     inspiredBy: "pink puffball platformer",
     tokens: {
-      bgDeep: "#fff0f6", bgCard: "#ffffff", bgHover: "#ffe0ef", border: "#ffc2dd",
-      borderStrong: "#ff8fbf", text: "#5a2a45", textMuted: "#b06a8a", textDim: "#8a4a6a",
-      accent: "#ff5fa2", secondary: "#7cc7ff", success: "#7ed957", gold: "#ffd25f",
+      bgDeep: "#f7e3f1", bgCard: "#ffffff", bgHover: "#fdeef7", border: "#f0c8e0",
+      borderStrong: "#e79cc6", text: "#5a2a45", textMuted: "#a86a90", textDim: "#83486a",
+      accent: "#ff62bb", secondary: "#99c2ff", success: "#ff84ba", gold: "#ffdf82",
       danger: "#ff5f7e", onAccent: "#ffffff",
     },
     fonts: {
-      display: "'Baloo 2', cursive",
+      display: "'Chango', cursive",
       body: "'Quicksand', sans-serif",
       mono: "'Space Mono', monospace",
-      googleFontsUrl: GF + "family=Baloo+2:wght@400;700;800&family=Quicksand:wght@400;500;600&family=Space+Mono&display=swap",
+      googleFontsUrl: GF + "family=Chango&family=Quicksand:wght@400;500;600&family=Space+Mono&display=swap",
     },
-    effect: { kind: "star", particleColors: ["#ff5fa2", "#7cc7ff", "#ffd25f"], bossGlow: "#ff5fa2" },
+    effect: { kind: "star", particleColors: ["#ff62bb", "#99c2ff", "#ffdf82"], bossGlow: "#ff62bb" },
     sound: sounds("puffball"),
-    background: "radial-gradient(circle at 50% 0%,#ffe0ef 0%,#fff0f6 60%)",
+    background: "radial-gradient(circle at 50% 0%,#fdeef7 0%,#f7e3f1 60%)",
     icons: { learn: "📖", build: "🧩", create: "🍬", research: "🔍", practice: "💫", document: "📗", levelUp: "🌟" },
   },
 
@@ -200,10 +203,10 @@ export const THEMES: Record<ThemeId, GameTheme> = {
     blurb: "Mine, craft, and build block by block in a pixel world.",
     inspiredBy: "voxel sandbox",
     tokens: {
-      bgDeep: "#1a1a1a", bgCard: "#2b2b2b", bgHover: "#3a3a3a", border: "#4a4a4a",
-      borderStrong: "#5a5a5a", text: "#e8e8e8", textMuted: "#9a9a9a", textDim: "#bdbdbd",
-      accent: "#6abe30", secondary: "#8a5a2b", success: "#6abe30", gold: "#f2c94c",
-      danger: "#d64b4b", onAccent: "#0d160a",
+      bgDeep: "#e4d8c6", bgCard: "#f0e7d7", bgHover: "#e8dccb", border: "#cbbda6",
+      borderStrong: "#a8977e", text: "#2b2420", textMuted: "#6b615a", textDim: "#4a423c",
+      accent: "#5a9e28", secondary: "#8a5a2b", success: "#5a9e28", gold: "#c99a1e",
+      danger: "#c0392b", onAccent: "#ffffff",
     },
     fonts: {
       display: "'Press Start 2P', cursive",
@@ -211,21 +214,22 @@ export const THEMES: Record<ThemeId, GameTheme> = {
       mono: "'Silkscreen', monospace",
       googleFontsUrl: GF + "family=Press+Start+2P&family=Inter:wght@400;600&family=Silkscreen:wght@400;700&display=swap",
     },
-    effect: { kind: "block", particleColors: ["#6abe30", "#8a5a2b", "#f2c94c"], bossGlow: "#6abe30" },
+    effect: { kind: "block", particleColors: ["#5a9e28", "#8a5a2b", "#c99a1e"], bossGlow: "#5a9e28" },
     sound: sounds("block"),
+    background: "linear-gradient(180deg,#ece0cf 0%,#ddd0bb 100%)",
     icons: { learn: "📕", build: "⛏️", create: "🧱", research: "🔦", practice: "⚒️", document: "📜", levelUp: "💎" },
   },
 
   wizard: {
     id: "wizard",
     name: "Wizard School",
-    blurb: "Study spells in candlelit halls of emerald and gold.",
+    blurb: "Study spells in candlelit halls of crimson and gold.",
     inspiredBy: "wizarding school",
     tokens: {
-      bgDeep: "#0b1410", bgCard: "#12211a", bgHover: "#1a2e24", border: "#274b3f",
-      borderStrong: "#3c6b57", text: "#ece6d3", textMuted: "#8aa89a", textDim: "#b7c9bd",
-      accent: "#d4af37", secondary: "#2e8b57", success: "#4ea172", gold: "#d4af37",
-      danger: "#a83232", onAccent: "#0b1410",
+      bgDeep: "#140b0b", bgCard: "#211212", bgHover: "#2e1a1a", border: "#4b2727",
+      borderStrong: "#6b3c3c", text: "#ece6d3", textMuted: "#a88a8a", textDim: "#c9b7b7",
+      accent: "#d4af37", secondary: "#8b2e2e", success: "#a14e4e", gold: "#d4af37",
+      danger: "#a83232", onAccent: "#140b0b",
     },
     fonts: {
       display: "'Cinzel', serif",
@@ -233,9 +237,9 @@ export const THEMES: Record<ThemeId, GameTheme> = {
       mono: "'Cormorant', serif",
       googleFontsUrl: GF + "family=Cinzel:wght@400;700;900&family=EB+Garamond:wght@400;500;600&family=Cormorant:wght@400;600&display=swap",
     },
-    effect: { kind: "spell", particleColors: ["#d4af37", "#2e8b57", "#eae0c0"], bossGlow: "#d4af37" },
+    effect: { kind: "spell", particleColors: ["#d4af37", "#8b2e2e", "#eae0c0"], bossGlow: "#d4af37" },
     sound: sounds("wizard"),
-    background: "radial-gradient(circle at 50% 120%,#173025 0%,#0b1410 70%)",
+    background: "radial-gradient(circle at 50% 120%,#301717 0%,#140b0b 70%)",
     icons: { learn: "📜", build: "🪄", create: "✨", research: "🔮", practice: "⚗️", document: "📖", levelUp: "🏅" },
   },
 
@@ -245,10 +249,10 @@ export const THEMES: Record<ThemeId, GameTheme> = {
     blurb: "POW! Bold comic-book action in primary colors.",
     inspiredBy: "superhero comic",
     tokens: {
-      bgDeep: "#0a1024", bgCard: "#121a3a", bgHover: "#1a244d", border: "#2a3768",
-      borderStrong: "#3d4f8f", text: "#f5f7ff", textMuted: "#8b95c4", textDim: "#b3bce0",
-      accent: "#ff2b4e", secondary: "#2b6bff", success: "#37d67a", gold: "#ffd23f",
-      danger: "#ff2b4e", onAccent: "#ffffff",
+      bgDeep: "#fff4e0", bgCard: "#fffdf8", bgHover: "#ffe9c9", border: "#ead4b4",
+      borderStrong: "#d4b483", text: "#1a1626", textMuted: "#6b6478", textDim: "#433c52",
+      accent: "#e63946", secondary: "#f4a300", success: "#2a9d8f", gold: "#ffc300",
+      danger: "#e63946", onAccent: "#ffffff",
     },
     fonts: {
       display: "'Bangers', cursive",
@@ -256,8 +260,9 @@ export const THEMES: Record<ThemeId, GameTheme> = {
       mono: "'Roboto Mono', monospace",
       googleFontsUrl: GF + "family=Bangers&family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap",
     },
-    effect: { kind: "pow", particleColors: ["#ff2b4e", "#2b6bff", "#ffd23f"], bossGlow: "#ff2b4e" },
+    effect: { kind: "pow", particleColors: ["#e63946", "#f4a300", "#ffc300"], bossGlow: "#e63946" },
     sound: sounds("hero"),
+    background: "linear-gradient(180deg,#fff8ea 0%,#ffe9c9 100%)",
     icons: { learn: "📖", build: "🛠️", create: "💥", research: "🔎", practice: "🦸", document: "🗞️", levelUp: "🌟" },
   },
 
@@ -267,10 +272,10 @@ export const THEMES: Record<ThemeId, GameTheme> = {
     blurb: "A hushed, sepia dreamworld lit by a single lantern.",
     inspiredBy: "eerie puzzle-platformer",
     tokens: {
-      bgDeep: "#0d0b09", bgCard: "#171310", bgHover: "#221c16", border: "#322a22",
-      borderStrong: "#4a3e30", text: "#d8cbb8", textMuted: "#7a6f5f", textDim: "#a1937d",
-      accent: "#d9863d", secondary: "#6b5a3e", success: "#8a9a5b", gold: "#c89b4a",
-      danger: "#8a3b2f", onAccent: "#0d0b09",
+      bgDeep: "#141418", bgCard: "#0f1e2d", bgHover: "#1a2c3d", border: "#2b3a44",
+      borderStrong: "#486e75", text: "#d8cbb8", textMuted: "#9a8f7d", textDim: "#b3a891",
+      accent: "#ffd700", secondary: "#486e75", success: "#8a9a5b", gold: "#ffd700",
+      danger: "#8b2717", onAccent: "#141418",
     },
     fonts: {
       display: "'Special Elite', cursive",
@@ -278,9 +283,9 @@ export const THEMES: Record<ThemeId, GameTheme> = {
       mono: "'Special Elite', monospace",
       googleFontsUrl: GF + "family=Special+Elite&family=Crimson+Text:wght@400;600&display=swap",
     },
-    effect: { kind: "ember", particleColors: ["#d9863d", "#8a3b2f", "#c89b4a"], bossGlow: "#d9863d" },
+    effect: { kind: "ember", particleColors: ["#ffd700", "#8b2717", "#486e75"], bossGlow: "#ffd700" },
     sound: sounds("nightmare"),
-    background: "radial-gradient(circle at 50% 40%,#1a140e 0%,#0d0b09 70%)",
+    background: "radial-gradient(circle at 50% 40%,#1c1c22 0%,#141418 70%)",
     icons: { learn: "🕯️", build: "🔗", create: "🎭", research: "🔦", practice: "👣", document: "📓", levelUp: "🌙" },
   },
 
@@ -290,10 +295,10 @@ export const THEMES: Record<ThemeId, GameTheme> = {
     blurb: "Survive the outbreak — blood red and toxic green.",
     inspiredBy: "survival horror",
     tokens: {
-      bgDeep: "#0a0c0a", bgCard: "#141814", bgHover: "#1e241e", border: "#2b332b",
-      borderStrong: "#3f4a3f", text: "#d6e0d0", textMuted: "#6f7a6a", textDim: "#94a08c",
-      accent: "#b81414", secondary: "#7fff00", success: "#7fdd3a", gold: "#c9b458",
-      danger: "#b81414", onAccent: "#f0fff0",
+      bgDeep: "#1e1f1a", bgCard: "#262820", bgHover: "#313327", border: "#3d4034",
+      borderStrong: "#545845", text: "#d9e2ec", textMuted: "#8a9282", textDim: "#aab3a0",
+      accent: "#a38a5e", secondary: "#4a5d4e", success: "#4a5d4e", gold: "#a38a5e",
+      danger: "#5c1d1d", onAccent: "#1e1f1a",
     },
     fonts: {
       display: "'Oswald', sans-serif",
@@ -301,9 +306,9 @@ export const THEMES: Record<ThemeId, GameTheme> = {
       mono: "'Share Tech Mono', monospace",
       googleFontsUrl: GF + "family=Oswald:wght@400;600;700&family=Barlow:wght@400;600&family=Share+Tech+Mono&display=swap",
     },
-    effect: { kind: "glitch", particleColors: ["#7fff00", "#8b0f0f", "#b81414"], bossGlow: "#b81414" },
+    effect: { kind: "glitch", particleColors: ["#a38a5e", "#5c1d1d", "#4a5d4e"], bossGlow: "#a38a5e" },
     sound: sounds("zombie"),
-    background: "radial-gradient(circle at 50% 100%,#141a12 0%,#0a0c0a 70%)",
+    background: "radial-gradient(circle at 50% 100%,#26281f 0%,#1e1f1a 70%)",
     icons: { learn: "📋", build: "🔧", create: "☣️", research: "🧪", practice: "🔫", document: "📁", levelUp: "🧟" },
   },
 
@@ -313,10 +318,10 @@ export const THEMES: Record<ThemeId, GameTheme> = {
     blurb: "Explore vast wilds — runes, blades, and open skies.",
     inspiredBy: "open-world adventure",
     tokens: {
-      bgDeep: "#0c1512", bgCard: "#14231d", bgHover: "#1d3229", border: "#2a473b",
-      borderStrong: "#3d6b57", text: "#e6f0e2", textMuted: "#86a596", textDim: "#aecabb",
-      accent: "#5bc0be", secondary: "#c9a227", success: "#7bd389", gold: "#e0c068",
-      danger: "#cf6a4c", onAccent: "#0c1512",
+      bgDeep: "#ede6d2", bgCard: "#f7f2e4", bgHover: "#e3dac2", border: "#d3c7a6",
+      borderStrong: "#b3a37a", text: "#23372e", textMuted: "#6a7c6e", textDim: "#47584c",
+      accent: "#2f8f8d", secondary: "#b8891f", success: "#4f9e5c", gold: "#d9a94a",
+      danger: "#cf6a4c", onAccent: "#ffffff",
     },
     fonts: {
       display: "'MedievalSharp', cursive",
@@ -324,33 +329,33 @@ export const THEMES: Record<ThemeId, GameTheme> = {
       mono: "'Cutive Mono', monospace",
       googleFontsUrl: GF + "family=MedievalSharp&family=Spectral:wght@400;600&family=Cutive+Mono&display=swap",
     },
-    effect: { kind: "rune", particleColors: ["#5bc0be", "#c9a227", "#7bd389"], bossGlow: "#5bc0be" },
+    effect: { kind: "rune", particleColors: ["#2f8f8d", "#b8891f", "#4f9e5c"], bossGlow: "#2f8f8d" },
     sound: sounds("adventure"),
-    background: "linear-gradient(180deg,#0f1c17 0%,#0c1512 100%)",
+    background: "linear-gradient(180deg,#f2ecda 0%,#e3dac2 100%)",
     icons: { learn: "📜", build: "⚒️", create: "🗡️", research: "🧭", practice: "🏹", document: "🗺️", levelUp: "🛡️" },
   },
 
   cozy: {
     id: "cozy",
-    name: "Cozy Farm",
-    blurb: "Plant, tend, and grow at a gentle, wholesome pace.",
-    inspiredBy: "cozy life-sim",
+    name: "Coastal Cove",
+    blurb: "Sun, surf, and seashells — a breezy coastal escape.",
+    inspiredBy: "cozy coastal life-sim",
     tokens: {
-      bgDeep: "#fbf6e9", bgCard: "#ffffff", bgHover: "#f3ead2", border: "#e3d5b0",
-      borderStrong: "#c9b57e", text: "#4a3f2a", textMuted: "#9a8a63", textDim: "#6f6144",
-      accent: "#e0902f", secondary: "#7cb518", success: "#7cb518", gold: "#f2b134",
-      danger: "#d1495b", onAccent: "#ffffff",
+      bgDeep: "#eee0c9", bgCard: "#faf4e8", bgHover: "#f0e6d0", border: "#d8cbb0",
+      borderStrong: "#bdcdd6", text: "#2e4756", textMuted: "#6b8493", textDim: "#47606e",
+      accent: "#6096b4", secondary: "#93bfcf", success: "#6fb0a0", gold: "#e4b363",
+      danger: "#e27d8a", onAccent: "#ffffff",
     },
     fonts: {
-      display: "'Fredoka', sans-serif",
+      display: "'Comfortaa', cursive",
       body: "'Nunito', sans-serif",
       mono: "'Nanum Gothic Coding', monospace",
-      googleFontsUrl: GF + "family=Fredoka:wght@400;500;600&family=Nunito:wght@400;600;700&family=Nanum+Gothic+Coding&display=swap",
+      googleFontsUrl: GF + "family=Comfortaa:wght@400;500;700&family=Nunito:wght@400;600;700&family=Nanum+Gothic+Coding&display=swap",
     },
-    effect: { kind: "leaf", particleColors: ["#7cb518", "#e0902f", "#f2b134"], bossGlow: "#e0902f" },
+    effect: { kind: "leaf", particleColors: ["#6096b4", "#93bfcf", "#e4b363"], bossGlow: "#6096b4" },
     sound: sounds("cozy"),
-    background: "linear-gradient(180deg,#fdfaf0 0%,#f3ead2 100%)",
-    icons: { learn: "🌱", build: "🔨", create: "🎨", research: "🔍", practice: "🧺", document: "📔", levelUp: "🌾" },
+    background: "linear-gradient(180deg,#f3ead6 0%,#eaddc2 100%)",
+    icons: { learn: "🐚", build: "🏖️", create: "🎨", research: "🔍", practice: "🌊", document: "📔", levelUp: "🌴" },
   },
 
   monster: {
@@ -359,20 +364,20 @@ export const THEMES: Record<ThemeId, GameTheme> = {
     blurb: "Catch, train, and battle — gotta level 'em all.",
     inspiredBy: "creature collector",
     tokens: {
-      bgDeep: "#f2f7ff", bgCard: "#ffffff", bgHover: "#e4edff", border: "#c3d4ee",
-      borderStrong: "#8fb0dd", text: "#1b2a4a", textMuted: "#5f7595", textDim: "#3f5578",
-      accent: "#ee1515", secondary: "#3b4cca", success: "#4dad5b", gold: "#ffcb05",
-      danger: "#ee1515", onAccent: "#ffffff",
+      bgDeep: "#f2f2f2", bgCard: "#ffffff", bgHover: "#e6e6e6", border: "#d0d0d0",
+      borderStrong: "#a8a8a8", text: "#1b2a4a", textMuted: "#5f6575", textDim: "#3f4558",
+      accent: "#3b4cca", secondary: "#ff1f1f", success: "#46a144", gold: "#ffcb05",
+      danger: "#ff1f1f", onAccent: "#ffffff",
     },
     fonts: {
-      display: "'Baloo 2', cursive",
+      display: "'Titan One', cursive",
       body: "'Poppins', sans-serif",
       mono: "'Roboto Mono', monospace",
-      googleFontsUrl: GF + "family=Baloo+2:wght@400;700;800&family=Poppins:wght@400;600&family=Roboto+Mono:wght@400;500&display=swap",
+      googleFontsUrl: GF + "family=Titan+One&family=Poppins:wght@400;600&family=Roboto+Mono:wght@400;500&display=swap",
     },
-    effect: { kind: "capture", particleColors: ["#ee1515", "#ffcb05", "#3b4cca"], bossGlow: "#ee1515" },
+    effect: { kind: "capture", particleColors: ["#3b4cca", "#ff1f1f", "#ffcb05"], bossGlow: "#ff1f1f" },
     sound: sounds("monster"),
-    background: "linear-gradient(180deg,#f2f7ff 0%,#e4edff 100%)",
+    background: "linear-gradient(180deg,#f7f7f7 0%,#e9e9e9 100%)",
     icons: { learn: "📘", build: "🔧", create: "✨", research: "🔎", practice: "⚡", document: "📕", levelUp: "🏅" },
   },
 
@@ -382,9 +387,9 @@ export const THEMES: Record<ThemeId, GameTheme> = {
     blurb: "Drop in, build up, and grab the Victory crown.",
     inspiredBy: "battle royale",
     tokens: {
-      bgDeep: "#0d0a1f", bgCard: "#171233", bgHover: "#221a4a", border: "#322a63",
-      borderStrong: "#4a3d8f", text: "#f0edff", textMuted: "#8b82c4", textDim: "#b3aae0",
-      accent: "#8a4fff", secondary: "#2ec5ff", success: "#37d67a", gold: "#ffd23f",
+      bgDeep: "#0e1726", bgCard: "#16223a", bgHover: "#1f2f4d", border: "#2a3d5c",
+      borderStrong: "#3d5580", text: "#eaf1ff", textMuted: "#8595b0", textDim: "#b0bdd6",
+      accent: "#a020f0", secondary: "#00ffff", success: "#228b22", gold: "#ffd700",
       danger: "#ff4d6d", onAccent: "#ffffff",
     },
     fonts: {
@@ -393,33 +398,79 @@ export const THEMES: Record<ThemeId, GameTheme> = {
       mono: "'Chakra Petch', monospace",
       googleFontsUrl: GF + "family=Teko:wght@400;600;700&family=Rajdhani:wght@400;600;700&family=Chakra+Petch:wght@400;600&display=swap",
     },
-    effect: { kind: "victory", particleColors: ["#8a4fff", "#2ec5ff", "#ffd23f"], bossGlow: "#8a4fff" },
+    effect: { kind: "victory", particleColors: ["#a020f0", "#00ffff", "#ffd700"], bossGlow: "#a020f0" },
     sound: sounds("dropsquad"),
-    background: "radial-gradient(circle at 50% 0%,#1c1450 0%,#0d0a1f 70%)",
+    background: "radial-gradient(circle at 50% 0%,#152238 0%,#0e1726 70%)",
     icons: { learn: "📖", build: "🏗️", create: "🎨", research: "🔍", practice: "🎯", document: "📋", levelUp: "👑" },
   },
 
-  beat: {
-    id: "beat",
-    name: "Beat Drop",
-    blurb: "Feel the rhythm — neon pulses and combo streaks.",
-    inspiredBy: "rhythm arcade",
+  reef: {
+    id: "reef",
+    name: "Deep Reef",
+    blurb: "Drift through sunlit shallows and coral gardens.",
+    inspiredBy: "underwater survival",
     tokens: {
-      bgDeep: "#0a0612", bgCard: "#150c26", bgHover: "#21123a", border: "#331a52",
-      borderStrong: "#4d2a7a", text: "#f5ecff", textMuted: "#9a7ac4", textDim: "#c0a3e0",
-      accent: "#ff2bd6", secondary: "#00e5ff", success: "#3affc0", gold: "#ffe14d",
-      danger: "#ff2b6b", onAccent: "#0a0612",
+      bgDeep: "#cfe6d2", bgCard: "#eaf4e6", bgHover: "#dcebdd", border: "#b9d4be",
+      borderStrong: "#8fb89c", text: "#244a41", textMuted: "#5e7d70", textDim: "#3e5f53",
+      accent: "#659287", secondary: "#88bda4", success: "#7fb68f", gold: "#e8a87c",
+      danger: "#c56b5b", onAccent: "#ffffff",
     },
     fonts: {
-      display: "'Audiowide', sans-serif",
-      body: "'Rajdhani', sans-serif",
+      display: "'Exo 2', sans-serif",
+      body: "'Jost', sans-serif",
       mono: "'Share Tech Mono', monospace",
-      googleFontsUrl: GF + "family=Audiowide&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap",
+      googleFontsUrl: GF + "family=Exo+2:wght@400;600;700&family=Jost:wght@400;500;600&family=Share+Tech+Mono&display=swap",
     },
-    effect: { kind: "combo", particleColors: ["#ff2bd6", "#00e5ff", "#ffe14d"], bossGlow: "#ff2bd6" },
-    sound: sounds("beat"),
-    background: "radial-gradient(circle at 50% 100%,#1a0a2e 0%,#0a0612 70%)",
-    icons: { learn: "🎧", build: "🎛️", create: "🎨", research: "🔊", practice: "🥁", document: "🎼", levelUp: "🎵" },
+    effect: { kind: "leaf", particleColors: ["#659287", "#88bda4", "#e8a87c"], bossGlow: "#659287" },
+    sound: sounds("reef"),
+    background: "linear-gradient(180deg,#e6f2dd 0%,#b1d3b9 100%)",
+    icons: { learn: "🐠", build: "🪸", create: "🎨", research: "🔦", practice: "🫧", document: "📜", levelUp: "🌊" },
+  },
+
+  kitty: {
+    id: "kitty",
+    name: "Bows & Whiskers",
+    blurb: "Ribbons, sparkles, and sweet little friends.",
+    inspiredBy: "kawaii mascot",
+    tokens: {
+      bgDeep: "#fbefef", bgCard: "#ffffff", bgHover: "#ffe2e2", border: "#f5cbcb",
+      borderStrong: "#e7b7c4", text: "#6b4a5a", textMuted: "#a98a9a", textDim: "#85667a",
+      accent: "#e56aa0", secondary: "#c5b3d3", success: "#7fc8a9", gold: "#ffd59e",
+      danger: "#f0728a", onAccent: "#ffffff",
+    },
+    fonts: {
+      display: "'Grandstander', cursive",
+      body: "'Quicksand', sans-serif",
+      mono: "'Space Mono', monospace",
+      googleFontsUrl: GF + "family=Grandstander:wght@400;600;800&family=Quicksand:wght@400;500;600&family=Space+Mono&display=swap",
+    },
+    effect: { kind: "star", particleColors: ["#e56aa0", "#c5b3d3", "#ffd59e"], bossGlow: "#e56aa0" },
+    sound: sounds("kitty"),
+    background: "radial-gradient(circle at 50% 0%,#fff5f8 0%,#fbefef 60%)",
+    icons: { learn: "📖", build: "🎀", create: "🧁", research: "🔍", practice: "💗", document: "📗", levelUp: "⭐" },
+  },
+
+  elysian: {
+    id: "elysian",
+    name: "Elysian Skies",
+    blurb: "Sunlit temples, drifting clouds, and forgotten myth.",
+    inspiredBy: "atmospheric myth adventure",
+    tokens: {
+      bgDeep: "#f8ede3", bgCard: "#fffbf5", bgHover: "#f0e4d6", border: "#e0cdbc",
+      borderStrong: "#c9ae9a", text: "#3a2a31", textMuted: "#8a7078", textDim: "#5e4750",
+      accent: "#853953", secondary: "#85586f", success: "#7c8b5a", gold: "#c9a24b",
+      danger: "#a6413b", onAccent: "#fff7ef",
+    },
+    fonts: {
+      display: "'Cormorant', serif",
+      body: "'Spectral', serif",
+      mono: "'Cutive Mono', monospace",
+      googleFontsUrl: GF + "family=Cormorant:wght@500;600;700&family=Spectral:wght@400;600&family=Cutive+Mono&display=swap",
+    },
+    effect: { kind: "rune", particleColors: ["#853953", "#c9a24b", "#85586f"], bossGlow: "#c9a24b" },
+    sound: sounds("elysian"),
+    background: "radial-gradient(circle at 50% 0%,#fdf6ec 0%,#f0e4d6 70%)",
+    icons: { learn: "📜", build: "🏛️", create: "🎨", research: "🕊️", practice: "🌿", document: "🏺", levelUp: "⚡" },
   },
 };
 
@@ -427,7 +478,7 @@ export const THEMES: Record<ThemeId, GameTheme> = {
 export const THEME_LIST: GameTheme[] = [
   THEMES.space, THEMES.kart, THEMES.puffball, THEMES.block, THEMES.wizard,
   THEMES.hero, THEMES.nightmare, THEMES.zombie, THEMES.adventure, THEMES.cozy,
-  THEMES.monster, THEMES.dropsquad, THEMES.beat,
+  THEMES.monster, THEMES.dropsquad, THEMES.reef, THEMES.kitty, THEMES.elysian,
 ];
 
 export const DEFAULT_THEME_ID: ThemeId = "space";

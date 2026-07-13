@@ -131,18 +131,37 @@ export function buildWorld(config: TrackerConfig): WorldModel {
       });
     }
 
-    // Decorations on tiles not used by anything interactive.
-    const used = new Set(interactables.filter((it) => it.zone === i).map((it) => key(it.tile.x, it.tile.y)));
-    const decoTiles = DECO_SLOTS.map((s) => ({ x: origin.x + s.x, y: origin.y + s.y }))
-      .filter((t) => !used.has(key(t.x, t.y)))
-      .slice(0, 4 + (i % 3));
-
     for (const t of tiles) walkable.add(key(t.x, t.y));
     for (const t of bridgeTiles) walkable.add(key(t.x, t.y));
-    for (const t of decoTiles) walkable.delete(key(t.x, t.y));
 
-    zones.push({ index: i, phase, origin, tiles, bridgeTiles, gateTile, decoTiles, variant: i });
+    // decoTiles filled in a second pass below (needs every zone's bridges known).
+    zones.push({ index: i, phase, origin, tiles, bridgeTiles, gateTile, decoTiles: [], variant: i });
   });
+
+  // Keep decorations OFF bridges: a tree on a 1-wide bridge tile deletes it from
+  // `walkable` and blocks the crossing entirely. Exclude every bridge/gate tile
+  // plus its 4-neighbors (this also covers both bridge-approach tiles).
+  const bridgeBlock = new Set<string>();
+  for (const zone of zones) {
+    const span = [...zone.bridgeTiles];
+    if (zone.gateTile) span.push(zone.gateTile);
+    for (const t of span) {
+      bridgeBlock.add(key(t.x, t.y));
+      bridgeBlock.add(key(t.x + 1, t.y));
+      bridgeBlock.add(key(t.x - 1, t.y));
+      bridgeBlock.add(key(t.x, t.y + 1));
+      bridgeBlock.add(key(t.x, t.y - 1));
+    }
+  }
+  for (const zone of zones) {
+    const used = new Set(
+      interactables.filter((it) => it.zone === zone.index).map((it) => key(it.tile.x, it.tile.y))
+    );
+    zone.decoTiles = DECO_SLOTS.map((s) => ({ x: zone.origin.x + s.x, y: zone.origin.y + s.y }))
+      .filter((t) => !used.has(key(t.x, t.y)) && !bridgeBlock.has(key(t.x, t.y)))
+      .slice(0, 4 + (zone.index % 3));
+    for (const t of zone.decoTiles) walkable.delete(key(t.x, t.y));
+  }
 
   // Achievements -> flags on the zone they relate to (default: first zone).
   const zoneCount = Math.max(zones.length, 1);
